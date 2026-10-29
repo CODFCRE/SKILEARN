@@ -875,7 +875,7 @@ function Login() {
     setNotice('Password reset instructions were sent if this account exists.')
   }
 
-  const handleOAuth = async (provider) => {
+  const handleGoogleOAuth = async () => {
     setError('')
     setNotice('')
 
@@ -885,7 +885,7 @@ function Login() {
     }
 
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider,
+      provider: 'google',
       options: { redirectTo: `${window.location.origin}/` },
     })
 
@@ -963,14 +963,8 @@ function Login() {
 
             <div className="login-divider"><span>Or login with</span></div>
             <div className="social-auth" aria-label="Social sign in options">
-              <button onClick={() => setNotice('Campus SSO is not configured yet.')} aria-label="Campus SSO" title="Campus SSO">
-                <Icon>school</Icon>
-              </button>
-              <button onClick={() => handleOAuth('google')} aria-label="Log in with Google" title="Google">
+              <button onClick={handleGoogleOAuth} aria-label="Log in with Google" title="Google">
                 <Icon>account_circle</Icon>
-              </button>
-              <button onClick={() => handleOAuth('apple')} aria-label="Log in with Apple" title="Apple">
-                <Icon>phone_iphone</Icon>
               </button>
             </div>
           </div>
