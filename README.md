@@ -44,6 +44,15 @@ SUPABASE_ANON_KEY=your-supabase-anon-key
 PORT=5000
 ```
 
+Create `client/.env` with the browser-safe Supabase values:
+
+```text
+VITE_SUPABASE_URL=your-supabase-project-url
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+The client uses these values for Supabase Auth. Never place a service role key in the client environment.
+
 Never commit `.env` files, private keys, or service-account credentials.
 
 ## Available Screens
@@ -56,6 +65,7 @@ Never commit `.env` files, private keys, or service-account credentials.
 | `/skill-listing` | Offer a new skill |
 | `/verification` | Campus verification and onboarding |
 | `/chat` | Mentorship chat and session completion |
+| `/login` | Supabase email/password and OAuth login |
 
 ## Quality Checks
 

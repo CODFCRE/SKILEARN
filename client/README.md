@@ -12,6 +12,17 @@ npm run build
 npm run preview
 ```
 
+## Supabase Auth
+
+Copy `.env.example` to `.env` and set:
+
+```text
+VITE_SUPABASE_URL=your-supabase-project-url
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+The login screen is available at `/login`. Email/password login, password reset, Google OAuth, and Apple OAuth use Supabase Auth. Enable the corresponding providers and redirect URLs in the Supabase dashboard. Google OAuth setup details are documented in the [deployment guide](../docs/DEPLOYMENT.md#google-oauth-setup).
+
 ## Source Structure
 
 ```text
