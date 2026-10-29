@@ -2,6 +2,7 @@
 import { supabase, supabaseConfigured } from '../../shared/lib/supabase.js'
 import { EmptyState, Header, Icon, Screen } from '../../shared/components.jsx'
 import { navigate } from '../../shared/lib/navigation.js'
+import SlideCommit from '../../shared/components/SlideCommit.jsx'
 export function Profile() {
   const [profileData, setProfileData] = useState(null)
   const [loadError, setLoadError] = useState('')
@@ -252,10 +253,13 @@ export function Profile() {
                   </div>
                 </div>
 
-                <button className="profile-contact" type="button" onClick={() => navigate('/skill-listing')}>
-                  <span className="profile-contact-icon"><Icon>arrow_forward</Icon></span>
-                  <span>Offer a skill</span>
-                </button>
+                <SlideCommit
+                  label="Slide to offer a skill"
+                  doneLabel="Opening skill listing"
+                  errorLabel="Could not open skill listing"
+                  onDone={() => navigate('/skill-listing')}
+                  holdMs={0}
+                />
               </div>
             </section>
 
@@ -304,4 +308,3 @@ export function Profile() {
     </Screen>
   )
 }
-

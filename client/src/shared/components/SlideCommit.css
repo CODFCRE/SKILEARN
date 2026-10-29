@@ -1,0 +1,127 @@
+.slide-commit {
+  width: 100%;
+  max-width: 460px;
+  height: 56px;
+  font-family: inherit;
+}
+
+.slide-commit[data-disabled] {
+  opacity: 0.55;
+}
+
+.slide-commit__track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #e6e9e0;
+  border: 1px solid #c5c8b6;
+  border-radius: 999px;
+  box-shadow:
+    inset 0 2px 5px rgba(27, 35, 21, 0.1),
+    inset 0 1px 1px rgba(255, 255, 255, 0.95),
+    0 4px 12px rgba(27, 35, 21, 0.08);
+}
+
+.slide-commit__label {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  color: #596052;
+  font-size: 13px;
+  font-weight: 700;
+  pointer-events: none;
+  user-select: none;
+}
+
+.slide-commit[data-phase='error'] .slide-commit__label {
+  color: #a33a32;
+}
+
+.slide-commit__progress {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  background: linear-gradient(135deg, #718b3c, #4f661b 70%, #3c5115);
+  border-radius: 999px;
+  pointer-events: none;
+  transition: width 360ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.slide-commit[data-phase='done'] .slide-commit__progress {
+  right: 4px;
+  width: auto !important;
+  background: linear-gradient(135deg, #d1ed92, #9bbd59);
+}
+
+.slide-commit__handle {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 2;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(160deg, #314522, #1b2315 68%, #171d13);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.2),
+    0 3px 7px rgba(27, 35, 21, 0.24);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  transition: transform 360ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.slide-commit[data-held] .slide-commit__handle {
+  cursor: grabbing;
+}
+
+.slide-commit[data-phase='pending'] .slide-commit__handle {
+  cursor: wait;
+}
+
+.slide-commit[data-phase='done'] .slide-commit__handle {
+  color: #263717;
+}
+
+.slide-commit__handle:focus-visible {
+  outline: 3px solid #8fa956;
+  outline-offset: 3px;
+}
+
+.slide-commit__spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: slide-commit-spin 0.8s linear infinite;
+}
+
+.slide-commit__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@keyframes slide-commit-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-commit__spinner {
+    animation-duration: 1.6s;
+  }
+}
