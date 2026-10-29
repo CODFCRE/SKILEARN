@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CampusSkill - Wallet &amp; Activity Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "inverse-primary": "#b5d179",
+          "on-tertiary-fixed": "#161e10",
+          "surface-container-lowest": "#ffffff",
+          "on-tertiary": "#ffffff",
+          "on-secondary-fixed-variant": "#3d4c14",
+          "surface-container-high": "#e6e9e0",
+          "tertiary-container": "#99a38f",
+          "on-secondary-fixed": "#161f00",
+          "error-container": "#ffdad6",
+          "primary-fixed-dim": "#b5d179",
+          "inverse-surface": "#2e322c",
+          "primary-fixed": "#d1ed92",
+          "tertiary-fixed-dim": "#c0cab4",
+          "on-primary": "#ffffff",
+          "on-surface-variant": "#45483b",
+          "surface-container": "#ecefe6",
+          "surface-container-highest": "#e0e4db",
+          "outline": "#757969",
+          "surface": "#f8faf1",
+          "on-tertiary-container": "#31392a",
+          "secondary-container": "#d8eba1",
+          "on-surface": "#191d17",
+          "outline-variant": "#c5c8b6",
+          "on-background": "#191d17",
+          "on-tertiary-fixed-variant": "#414939",
+          "secondary": "#55642a",
+          "surface-container-low": "#f2f5ec",
+          "on-primary-container": "#2b3c00",
+          "on-primary-fixed": "#141f00",
+          "on-secondary-container": "#5b6a2f",
+          "surface-dim": "#d8dbd3",
+          "background": "#f8faf1",
+          "tertiary-fixed": "#dce6d0",
+          "tertiary": "#586150",
+          "secondary-fixed-dim": "#bcce88",
+          "inverse-on-surface": "#eff2e9",
+          "on-error": "#ffffff",
+          "surface-bright": "#f8faf1",
+          "primary": "#4f661b",
+          "surface-tint": "#4f661b",
+          "secondary-fixed": "#d8eba1",
+          "error": "#ba1a1a",
+          "on-error-container": "#93000a",
+          "primary-container": "#8fa956",
+          "surface-variant": "#e0e4db",
+          "on-primary-fixed-variant": "#384e01",
+          "on-secondary": "#ffffff"
+        },
+        "borderRadius": {
+          "DEFAULT": "1rem",
+          "lg": "2.5rem",
+          "xl": "3.5rem",
+          "full": "9999px",
+          "playful": "2rem 1rem 2rem 1rem"
+        },
+        "spacing": {
+          "margin": "20px",
+          "gutter": "16px",
+          "space-sm": "8px",
+          "space-xl": "32px",
+          "space-lg": "24px",
+          "space-xs": "4px",
+          "space-md": "16px"
+        },
+        "fontFamily": {
+          "headline-sm": ["Plus Jakarta Sans"],
+          "body-lg": ["Plus Jakarta Sans"],
+          "body-md": ["Plus Jakarta Sans"],
+          "label-md": ["Plus Jakarta Sans"],
+          "body-sm": ["Plus Jakarta Sans"],
+          "label-lg": ["Plus Jakarta Sans"],
+          "headline-md": ["Plus Jakarta Sans"],
+          "headline-lg-mobile": ["Plus Jakarta Sans"],
+          "headline-lg": ["Plus Jakarta Sans"],
+          "label-sm": ["Plus Jakarta Sans"]
+        }
+      }
+    }
+  }
+</script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+</style>
+</head>
+<body class="bg-background text-on-background font-body-md h-full flex flex-col justify-between selection:bg-primary-container selection:text-on-primary-container">
+<header class="bg-surface dark:bg-surface sticky top-0 z-40 transition-all duration-200">
+<div class="flex justify-between items-center w-full px-gutter py-space-md max-w-7xl mx-auto">
+<div class="flex items-center gap-space-md">
+<div class="w-11 h-11 rounded-playful overflow-hidden bg-surface-container-high flex items-center justify-center rotate-3 shadow-sm border-2 border-primary-fixed">
+<img class="w-full h-full object-cover" data-alt="Student portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqsfk0a95Vh-WmzXg03f1OJPmhRT-SkDqy2LckXwN5EjCKXdsoko_NW-_sT6pHhfj4cXncsoPu7wtQ9lFo3PNUboP51hOkwFc49M9ivyUyPW_XljEFZRPT7W_XrxsXhQ1IBLWcRZbQBQ25OIFDMBFZ30ferOiTgh-4Nv5FIZFy-LJLQZb_DLkXcQEZ9VMq7RiBFj9kLkQKlgYS47jbR9xTYWK9RSE10RVVlHisZ_N45AQIAcQQdUvFGg"/>
+</div>
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary tracking-tight">Skilearn</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="w-11 h-11 rounded-full flex items-center justify-center bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all duration-200 shadow-sm">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-1 max-w-7xl w-full mx-auto px-gutter py-space-md pb-32">
+<section class="mb-space-lg">
+<div class="bg-[#1B2315] text-white rounded-[2.5rem] p-space-lg relative overflow-hidden shadow-xl border-4 border-primary/30 transform hover:scale-[1.01] transition-transform">
+<div class="absolute -right-10 -top-10 w-48 h-48 bg-primary/30 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute -left-10 -bottom-10 w-40 h-40 bg-secondary-container/20 rounded-full blur-2xl pointer-events-none"></div>
+<div class="flex justify-between items-start mb-space-md relative z-10">
+<div>
+<span class="bg-primary/20 text-inverse-primary px-3 py-1 rounded-full font-label-md uppercase tracking-wider inline-block mb-2 border border-primary/30">Time-Credit Balance</span>
+<div class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg font-extrabold text-inverse-primary mt-1 drop-shadow-sm">Balance: 14 Credits</div>
+</div>
+<div class="w-14 h-14 rounded-playful bg-secondary-container text-on-secondary-container flex items-center justify-center shadow-lg rotate-6 animate-pulse">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">monetization_on</span>
+</div>
+</div>
+<div class="flex flex-wrap gap-space-md items-center justify-between pt-space-md border-t border-white/15 relative z-10">
+<div class="flex items-center gap-space-sm bg-black/20 px-3 py-1.5 rounded-full">
+<span class="w-3 h-3 rounded-full bg-primary-fixed animate-ping"></span>
+<span class="font-body-sm text-surface-variant font-medium">Equivalent to ~14 hours of skills</span>
+</div>
+<button class="bg-primary-fixed text-on-primary-fixed font-label-lg px-space-lg py-2.5 rounded-full hover:bg-primary-fixed-dim transition-all duration-200 shadow-md font-bold transform -rotate-1">
+            Redeem Hours
+          </button>
+</div>
+</div>
+</section>
+<section class="mb-space-lg">
+<h2 class="font-headline-sm text-headline-sm mb-space-md text-on-surface flex items-center gap-2">
+<span class="w-2 h-6 bg-primary rounded-full"></span> Quick Actions
+</h2>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-space-md">
+<a class="bg-surface-container-low hover:bg-surface-container p-space-md rounded-[2rem] flex flex-col items-center text-center transition-all duration-300 group border-2 border-outline-variant/20 hover:border-primary/40 shadow-sm" href="#">
+<div class="w-14 h-14 rounded-playful bg-secondary-container text-on-secondary-container flex items-center justify-center mb-space-sm group-hover:rotate-12 transition-transform shadow-sm">
+<span class="material-symbols-outlined text-xl">add_circle</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-bold">Offer New Skill</span>
+</a>
+<a class="bg-surface-container-low hover:bg-surface-container p-space-md rounded-[2rem] flex flex-col items-center text-center transition-all duration-300 group border-2 border-outline-variant/20 hover:border-primary/40 shadow-sm" href="#">
+<div class="w-14 h-14 rounded-playful bg-primary-container text-on-primary-container flex items-center justify-center mb-space-sm group-hover:-rotate-12 transition-transform shadow-sm">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-bold">Find Sessions</span>
+</a>
+<a class="bg-surface-container-low hover:bg-surface-container p-space-md rounded-[2rem] flex flex-col items-center text-center transition-all duration-300 group border-2 border-outline-variant/20 hover:border-primary/40 shadow-sm" href="#">
+<div class="w-14 h-14 rounded-playful bg-tertiary-fixed text-on-tertiary-fixed-variant flex items-center justify-center mb-space-sm group-hover:rotate-12 transition-transform shadow-sm">
+<span class="material-symbols-outlined text-xl">schedule</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-bold">Schedule</span>
+</a>
+<a class="bg-surface-container-low hover:bg-surface-container p-space-md rounded-[2rem] flex flex-col items-center text-center transition-all duration-300 group border-2 border-outline-variant/20 hover:border-primary/40 shadow-sm" href="#">
+<div class="w-14 h-14 rounded-playful bg-surface-container-high text-on-surface flex items-center justify-center mb-space-sm group-hover:-rotate-12 transition-transform shadow-sm">
+<span class="material-symbols-outlined text-xl">qr_code_scanner</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-bold">Scan &amp; Pay</span>
+</a>
+</div>
+</section>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg mb-space-lg">
+<div class="bg-surface-container-lowest border-2 border-primary/20 rounded-[2.5rem] p-space-lg shadow-md flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary-fixed/20 rounded-bl-full pointer-events-none"></div>
+<div>
+<div class="flex justify-between items-center mb-space-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Daily Goal</h3>
+<span class="font-label-sm text-primary bg-primary-fixed px-3 py-1 rounded-full font-bold shadow-sm">75% Achieved</span>
+</div>
+<p class="font-body-sm text-on-surface-variant mb-space-md">Complete 1 skill exchange session or review 2 mentor profiles today.</p>
+<div class="w-full bg-surface-container-high h-4 rounded-full overflow-hidden mb-space-sm p-0.5 border border-outline-variant/20">
+<div class="bg-primary h-full rounded-full transition-all duration-500 shadow-sm relative" style="width: 75%;">
+<div class="absolute right-1 top-0 bottom-0 w-1.5 bg-white/40 rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="flex justify-between items-center pt-space-sm font-label-md text-on-surface-variant border-t border-outline-variant/10">
+<span class="font-semibold">3 hrs learned</span>
+<span class="text-primary font-bold bg-primary-fixed/30 px-2.5 py-1 rounded-full">+1 Credit Reward pending</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border-2 border-secondary/20 rounded-[2.5rem] p-space-lg shadow-md flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-secondary-container/20 rounded-bl-full pointer-events-none"></div>
+<div>
+<div class="flex justify-between items-center mb-space-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Skill Standing</h3>
+<span class="material-symbols-outlined text-primary bg-secondary-container p-1 rounded-full">verified</span>
+</div>
+<div class="flex items-center gap-space-md mb-space-md">
+<div class="text-4xl font-extrabold font-headline-lg text-on-surface">4.9</div>
+<div>
+<div class="flex text-amber-500 gap-0.5">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<span class="font-body-sm text-on-surface-variant font-medium">Based on 28 reviews</span>
+</div>
+</div>
+</div>
+<div class="pt-space-sm border-t border-outline-variant/20 flex justify-between text-body-sm text-on-surface-variant">
+<span class="font-medium">Response rate: 98%</span>
+<span class="text-primary font-bold bg-primary-fixed/40 px-2 py-0.5 rounded-full">Top Mentor</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border-2 border-tertiary/20 rounded-[2.5rem] p-space-lg shadow-md flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-tertiary-fixed/30 rounded-bl-full pointer-events-none"></div>
+<div>
+<div class="flex justify-between items-center mb-space-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Active Listing</h3>
+<span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
+</div>
+<div class="font-label-lg text-on-surface font-bold text-base mb-1">Acoustic Guitar Tutoring</div>
+<p class="font-body-sm text-on-surface-variant mb-space-md">Offering beginner chords and rhythm techniques for campus peers.</p>
+</div>
+<div class="flex justify-between items-center pt-2 border-t border-outline-variant/10">
+<span class="font-label-md bg-secondary-container text-on-secondary-container px-3 py-1.5 rounded-full font-bold shadow-sm">1 Credit / hr</span>
+<button class="text-primary font-label-md hover:underline font-bold flex items-center gap-1">Manage →</button>
+</div>
+</div>
+</div>
+<section>
+<div class="flex justify-between items-center mb-space-md">
+<h2 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="w-2 h-6 bg-primary rounded-full"></span> Recent Transactions
+</h2>
+<a class="font-label-md text-primary font-bold hover:underline bg-surface-container-low px-3 py-1.5 rounded-full" href="#">View All</a>
+</div>
+<div class="bg-surface-container-lowest border-2 border-outline-variant/30 rounded-[2.5rem] overflow-hidden shadow-md divide-y divide-outline-variant/20">
+<div class="p-space-md flex items-center justify-between hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-playful bg-primary-fixed/40 text-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined font-bold">add</span>
+</div>
+<div>
+<div class="font-label-lg text-on-surface font-bold">Guitar tutoring</div>
+<div class="font-body-sm text-on-surface-variant">Session with Alex M. • Yesterday</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label-lg text-primary font-bold text-base">+3 Credits</div>
+<div class="font-body-sm text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-full inline-block">Completed</div>
+</div>
+</div>
+<div class="p-space-md flex items-center justify-between hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-playful bg-error-container text-on-error-container flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined font-bold">remove</span>
+</div>
+<div>
+<div class="font-label-lg text-on-surface font-bold">Python session</div>
+<div class="font-body-sm text-on-surface-variant">Mentorship with Sarah K. • 3 days ago</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label-lg text-error font-bold text-base">-2 Credits</div>
+<div class="font-body-sm text-on-surface-variant font-semibold bg-surface-container px-2 py-0.5 rounded-full inline-block">Completed</div>
+</div>
+</div>
+<div class="p-space-md flex items-center justify-between hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-playful bg-primary-fixed/40 text-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined font-bold">add</span>
+</div>
+<div>
+<div class="font-label-lg text-on-surface font-bold">UI/UX Design Review</div>
+<div class="font-body-sm text-on-surface-variant">Campus Workshop • 5 days ago</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label-lg text-primary font-bold text-base">+2 Credits</div>
+<div class="font-body-sm text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-full inline-block">Completed</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter py-3 shadow-2xl bg-surface-container-low dark:bg-inverse-surface rounded-t-[2.5rem] border-t-2 border-primary/20 backdrop-blur-md">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-space-md py-space-sm hover:bg-surface-container dark:hover:bg-surface transition-all duration-200 rounded-2xl" href="#">
+<span class="material-symbols-outlined">swap_horiz</span>
+<span class="font-label-sm text-label-sm mt-1 font-semibold">Exchange</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-space-md py-space-sm hover:bg-surface-container dark:hover:bg-surface transition-all duration-200 rounded-2xl" href="#">
+<span class="material-symbols-outlined">event</span>
+<span class="font-label-sm text-label-sm mt-1 font-semibold">Sessions</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-2xl px-4 py-2 shadow-md transform -translate-y-2 border-2 border-primary/40 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">monetization_on</span>
+<span class="font-label-sm text-label-sm mt-0.5 font-bold">Credits</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-space-md py-space-sm hover:bg-surface-container dark:hover:bg-surface transition-all duration-200 rounded-2xl" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm mt-1 font-semibold">Profile</span>
+</a>
+</nav>
+</body></html>

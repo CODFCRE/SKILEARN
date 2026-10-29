@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CampusSkill - Skill Detail &amp; Booking</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary-fixed-variant": "#414939",
+            "on-error-container": "#93000a",
+            "secondary-fixed-dim": "#bcce88",
+            "on-surface-variant": "#45483b",
+            "on-primary-container": "#2b3c00",
+            "secondary-container": "#d8eba1",
+            "primary-fixed": "#d1ed92",
+            "primary-container": "#8fa956",
+            "on-primary-fixed": "#141f00",
+            "on-secondary": "#ffffff",
+            "background": "#f8faf1",
+            "on-surface": "#191d17",
+            "tertiary": "#586150",
+            "primary": "#4f661b",
+            "inverse-on-surface": "#eff2e9",
+            "tertiary-fixed-dim": "#c0cab4",
+            "outline-variant": "#c5c8b6",
+            "on-secondary-container": "#5b6a2f",
+            "inverse-primary": "#b5d179",
+            "on-error": "#ffffff",
+            "secondary": "#55642a",
+            "surface-dim": "#d8dbd3",
+            "on-secondary-fixed-variant": "#3d4c14",
+            "on-background": "#191d17",
+            "on-primary": "#ffffff",
+            "on-tertiary-fixed": "#161e10",
+            "on-secondary-fixed": "#161f00",
+            "primary-fixed-dim": "#b5d179",
+            "surface-tint": "#4f661b",
+            "on-primary-fixed-variant": "#384e01",
+            "error-container": "#ffdad6",
+            "tertiary-fixed": "#dce6d0",
+            "surface": "#f8faf1",
+            "surface-container-high": "#e6e9e0",
+            "surface-variant": "#e0e4db",
+            "secondary-fixed": "#d8eba1",
+            "outline": "#757969",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-highest": "#e0e4db",
+            "inverse-surface": "#2e322c",
+            "tertiary-container": "#99a38f",
+            "on-tertiary-container": "#31392a",
+            "surface-container": "#ecefe6",
+            "surface-bright": "#f8faf1",
+            "surface-container-low": "#f2f5ec",
+            "error": "#ba1a1a",
+            "on-tertiary": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "1rem",
+            "lg": "2rem",
+            "xl": "3rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xl": "32px",
+            "space-sm": "8px",
+            "space-lg": "24px",
+            "gutter": "16px",
+            "space-xs": "4px",
+            "margin": "20px",
+            "space-md": "16px"
+          },
+          "fontFamily": {
+            "label-sm": ["Plus Jakarta Sans"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "body-sm": ["Plus Jakarta Sans"],
+            "label-lg": ["Plus Jakarta Sans"],
+            "headline-md": ["Plus Jakarta Sans"],
+            "headline-sm": ["Plus Jakarta Sans"],
+            "body-md": ["Plus Jakarta Sans"],
+            "body-lg": ["Plus Jakarta Sans"],
+            "label-md": ["Plus Jakarta Sans"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "label-sm": ["10px", { "lineHeight": "14px", "fontWeight": "600" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "600" }],
+            "headline-lg-mobile": ["26px", { "lineHeight": "32px", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased pb-28 selection:bg-primary-container selection:text-on-primary-container">
+<header class="bg-surface dark:bg-surface sticky top-0 z-40 w-full">
+<div class="flex justify-between items-center w-full px-gutter py-space-md max-w-7xl mx-auto">
+<div class="flex items-center gap-space-md">
+<button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-surface-container dark:hover:bg-inverse-surface transition-all duration-200 text-on-surface" onclick="history.back()">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary tracking-tight">Skilearn</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-all duration-200 text-on-surface shadow-sm">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-variant flex items-center justify-center border-2 border-primary/30">
+<img class="w-full h-full object-cover" data-alt="A friendly student profile avatar portrait with natural lighting, soft olive background, representing a university student in modern flat minimalist aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCNWoG4bGa9IpWmmuOeqkA0bmpyphZyTqddltL8veyqtdvCAbmX3aKnvkSzcWTuJf07cBQqIkLTJxZ60IMDpmr5nIQutk87G_GFnHEKuPJRx-DLMV7kMFIt-C7u3r8UGJaf886wzkOG1Paa1IJsRSSI5vuaEVJZuTcXrvIIQ3Mci55NWXRLbxhK_1GdMuyinw5WRojg4F1Lq8Ipe1_JdIkD9ehCKndVFYORzdvbAredBejx02mVRqtow"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-3xl mx-auto px-gutter py-space-lg flex flex-col gap-space-lg">
+<div class="bg-[#1B2315] text-[#F8FAF1] p-space-lg shadow-xl flex flex-col gap-space-md relative overflow-hidden rounded-[2.5rem] rounded-tr-[4rem] border-2 border-primary/20">
+<div class="absolute -right-10 -bottom-10 w-48 h-48 bg-primary/30 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute top-0 right-1/4 w-24 h-24 bg-secondary/20 rounded-full blur-2xl pointer-events-none"></div>
+<div class="flex justify-between items-start gap-space-md relative z-10">
+<span class="bg-primary-container text-on-primary-container font-label-md px-4 py-1.5 rounded-2xl rounded-tr-none uppercase tracking-wider shadow-sm transform -rotate-1">Computer Science</span>
+<div class="flex items-center gap-space-xs bg-surface/10 backdrop-blur-md px-3.5 py-1.5 rounded-full text-inverse-primary font-label-md border border-white/10">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">monetization_on</span>
+<span>2 Credits/hr</span>
+</div>
+</div>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-inverse-primary font-bold relative z-10 leading-tight">Advanced Python &amp; Data Structures</h1>
+<p class="text-surface-variant font-body-md leading-relaxed relative z-10 opacity-95">
+        Master complex algorithms, custom data structures, object-oriented design patterns, and performance optimization techniques in Python with a seasoned campus peer mentor.
+      </p>
+</div>
+<div class="bg-surface-container-low rounded-[2rem] rounded-bl-[3rem] p-space-lg border-2 border-outline-variant/30 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md transition-all duration-300 hover:shadow-md">
+<div class="flex items-center gap-space-md">
+<div class="w-16 h-16 rounded-2xl overflow-hidden bg-surface-variant relative flex-shrink-0 shadow-md rotate-2">
+<img class="w-full h-full object-cover" data-alt="Professional yet friendly portrait of a male university student mentor named Alex Rivera, smiling warmly, wearing a casual dark hoodie, set against a softly blurred campus background with modern lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUg0IY5FUxDzws4iUIBp6hxrsZ9MgwlRoLIOVFUG00qu9LD1_8_H8spGYuzvbhbO4ESBYA7ltbwcnX40y2L4LWJCj9Pc3NASrnfkSQmxcrRK6X3ItFx-Ozg7fLF5YrOz2ICoLW2AoOpXOV9Kn9x3BrA2VYB_hXyT-NA2rnz-yPkbSntMe4HxTsa7tI8brzYNkVrNtER-AW96Jvn92Xnv8jeTkmhxw64Bpy4HFTSbPOd5OgKDX0fUbuHA"/>
+</div>
+<div class="flex flex-col">
+<h3 class="font-headline-sm text-on-surface font-bold">Alex Rivera</h3>
+<p class="text-on-surface-variant font-body-sm">Senior CS Major • Peer Mentor</p>
+<div class="flex items-center gap-space-sm mt-1">
+<div class="flex items-center text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-md ml-1">4.9</span>
+</div>
+<span class="text-outline-variant">•</span>
+<span class="text-on-surface-variant font-body-sm">120 credits earned</span>
+</div>
+</div>
+</div>
+<button class="w-full sm:w-auto bg-surface border-2 border-outline-variant/50 text-on-surface px-space-md py-space-sm rounded-2xl font-label-lg hover:bg-surface-container hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center gap-space-xs shadow-sm">
+<span class="material-symbols-outlined text-sm">chat</span>
+<span>Message Mentor</span>
+</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-md">
+<div class="bg-surface-container-low rounded-[1.8rem] rounded-tr-[2.5rem] p-space-md border-2 border-outline-variant/30 flex flex-col gap-space-xs shadow-sm transform transition-transform hover:-translate-y-1">
+<div class="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-1">
+<span class="material-symbols-outlined">schedule</span>
+</div>
+<span class="font-label-lg text-on-surface">1 Hour Sessions</span>
+<span class="text-body-sm text-on-surface-variant">Focused 1-on-1 coding &amp; code review</span>
+</div>
+<div class="bg-surface-container-low rounded-[1.8rem] p-space-md border-2 border-outline-variant/30 flex flex-col gap-space-xs shadow-sm transform transition-transform hover:-translate-y-1">
+<div class="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-1">
+<span class="material-symbols-outlined">verified</span>
+</div>
+<span class="font-label-lg text-on-surface">Verified Mentor</span>
+<span class="text-body-sm text-on-surface-variant">Passed rigorous technical screening</span>
+</div>
+<div class="bg-surface-container-low rounded-[1.8rem] rounded-bl-[2.5rem] p-space-md border-2 border-outline-variant/30 flex flex-col gap-space-xs shadow-sm transform transition-transform hover:-translate-y-1">
+<div class="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-1">
+<span class="material-symbols-outlined">translate</span>
+</div>
+<span class="font-label-lg text-on-surface">English / Spanish</span>
+<span class="text-body-sm text-on-surface-variant">Bilingual communication available</span>
+</div>
+</div>
+<div class="flex flex-col gap-space-md">
+<div class="flex justify-between items-center px-1">
+<h2 class="font-headline-sm text-on-surface font-bold flex items-center gap-2">
+<span>Select Available Time Slot</span>
+<span class="inline-block w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+</h2>
+<span class="text-body-sm text-primary font-label-md bg-primary/10 px-3 py-1 rounded-full">This Week</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+<label class="cursor-pointer group">
+<input checked="" class="peer sr-only" name="timeslot" type="radio"/>
+<div class="bg-surface-container-low peer-checked:bg-secondary-container peer-checked:text-on-secondary-container peer-checked:border-primary peer-checked:shadow-md border-2 border-outline-variant/30 rounded-full py-3.5 px-6 flex justify-between items-center transition-all duration-300 group-hover:scale-[1.02] active:scale-98">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-surface peer-checked:bg-secondary flex items-center justify-center text-primary peer-checked:text-on-secondary font-label-lg shadow-sm">
+<span class="material-symbols-outlined">event</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-lg font-bold">Tomorrow, 3:00 PM</span>
+<span class="text-body-sm opacity-80">1 Hour • Online via CampusMeet</span>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline peer-checked:border-primary peer-checked:bg-primary flex items-center justify-center text-white transition-all">
+<span class="material-symbols-outlined text-xs">check</span>
+</div>
+</div>
+</label>
+<label class="cursor-pointer group">
+<input class="peer sr-only" name="timeslot" type="radio"/>
+<div class="bg-surface-container-low peer-checked:bg-secondary-container peer-checked:text-on-secondary-container peer-checked:border-primary peer-checked:shadow-md border-2 border-outline-variant/30 rounded-full py-3.5 px-6 flex justify-between items-center transition-all duration-300 group-hover:scale-[1.02] active:scale-98">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-surface peer-checked:bg-secondary flex items-center justify-center text-primary peer-checked:text-on-secondary font-label-lg shadow-sm">
+<span class="material-symbols-outlined">event</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-lg font-bold">Thursday, 5:30 PM</span>
+<span class="text-body-sm opacity-80">1 Hour • Library Room 4B</span>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline peer-checked:border-primary peer-checked:bg-primary flex items-center justify-center text-white transition-all">
+<span class="material-symbols-outlined text-xs">check</span>
+</div>
+</div>
+</label>
+<label class="cursor-pointer group">
+<input class="peer sr-only" name="timeslot" type="radio"/>
+<div class="bg-surface-container-low peer-checked:bg-secondary-container peer-checked:text-on-secondary-container peer-checked:border-primary peer-checked:shadow-md border-2 border-outline-variant/30 rounded-full py-3.5 px-6 flex justify-between items-center transition-all duration-300 group-hover:scale-[1.02] active:scale-98">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-surface peer-checked:bg-secondary flex items-center justify-center text-primary peer-checked:text-on-secondary font-label-lg shadow-sm">
+<span class="material-symbols-outlined">event</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-lg font-bold">Friday, 2:00 PM</span>
+<span class="text-body-sm opacity-80">1 Hour • Online via CampusMeet</span>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline peer-checked:border-primary peer-checked:bg-primary flex items-center justify-center text-white transition-all">
+<span class="material-symbols-outlined text-xs">check</span>
+</div>
+</div>
+</label>
+<label class="cursor-pointer group">
+<input class="peer sr-only" name="timeslot" type="radio"/>
+<div class="bg-surface-container-low peer-checked:bg-secondary-container peer-checked:text-on-secondary-container peer-checked:border-primary peer-checked:shadow-md border-2 border-outline-variant/30 rounded-full py-3.5 px-6 flex justify-between items-center transition-all duration-300 group-hover:scale-[1.02] active:scale-98">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-surface peer-checked:bg-secondary flex items-center justify-center text-primary peer-checked:text-on-secondary font-label-lg shadow-sm">
+<span class="material-symbols-outlined">event</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-lg font-bold">Saturday, 11:00 AM</span>
+<span class="text-body-sm opacity-80">1 Hour • CS Student Lounge</span>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline peer-checked:border-primary peer-checked:bg-primary flex items-center justify-center text-white transition-all">
+<span class="material-symbols-outlined text-xs">check</span>
+</div>
+</div>
+</label>
+</div>
+</div>
+<div class="sticky bottom-20 z-30 bg-surface/90 backdrop-blur-md pt-space-md pb-space-md mt-space-lg flex flex-col sm:flex-row items-center justify-between gap-space-md border-t-2 border-outline-variant/20 px-4 rounded-3xl shadow-lg">
+<div class="flex items-center gap-space-sm w-full sm:w-auto justify-between sm:justify-start">
+<span class="text-on-surface-variant font-body-md font-medium">Total Cost:</span>
+<div class="flex items-center gap-space-xs text-primary font-headline-md bg-primary-container/30 px-3 py-1 rounded-full">
+<span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">monetization_on</span>
+<span class="font-bold">2 Credits</span>
+</div>
+</div>
+<button class="w-full sm:w-auto bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container px-space-xl py-4 rounded-full font-label-lg transition-all duration-300 shadow-xl flex items-center justify-center gap-space-sm hover:scale-105 active:scale-95" onclick="alert('Session successfully booked with Alex Rivera!')">
+<span class="material-symbols-outlined">check_circle</span>
+<span>Book Session (2 Credits)</span>
+</button>
+</div>
+</main>
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter py-space-sm bg-surface-container-low dark:bg-inverse-surface shadow-2xl dark:shadow-none rounded-t-[2.5rem] border-t-2 border-outline-variant/20">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-space-md py-space-sm hover:bg-surface-container dark:hover:bg-surface transition-all duration-200 rounded-2xl" href="#">
+<span class="material-symbols-outlined">swap_horiz</span>
+<span class="font-label-sm text-label-sm mt-1">Exchange</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-2xl px-space-md py-space-sm transition-all duration-200 shadow-sm" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">event</span>
+<span class="font-label-sm text-label-sm mt-1">Sessions</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-space-md py-space-sm hover:bg-surface-container dark:hover:bg-surface transition-all duration-200 rounded-2xl" href="#">
+<span class="material-symbols-outlined">monetization_on</span>
+<span class="font-label-sm text-label-sm mt-1">Credits</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-space-md py-space-sm hover:bg-surface-container dark:hover:bg-surface transition-all duration-200 rounded-2xl" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm mt-1">Profile</span>
+</a>
+</nav>
+</body></html>
