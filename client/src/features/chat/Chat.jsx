@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BottomNav, Icon } from '../../shared/components.jsx'
+import { Icon } from '../../shared/components.jsx'
 import { goBack, navigate } from '../../shared/lib/navigation.js'
 import { supabase } from '../../shared/lib/supabase.js'
 
@@ -233,7 +233,6 @@ export function Chat() {
           </button>
         </div>
       </form>
-      <BottomNav active="sessions" />
     </div>
   )
 }
