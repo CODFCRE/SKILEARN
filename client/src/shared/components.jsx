@@ -45,16 +45,20 @@ export function Header({ back = false, help = false, rightAction }) {
 export function BottomNav({ active }) {
   return (
     <nav className="bottom-nav" aria-label="Primary navigation">
-      {navigationItems.map(([key, icon, label]) => (
-        <button
-          key={key}
-          className={active === key ? 'nav-item active' : 'nav-item'}
-          onClick={() => navigate(key === 'exchange' ? '/' : key === 'profile' ? '/profile' : `/${key}`)}
-        >
-          <Icon filled={active === key}>{icon}</Icon>
-          <span>{label}</span>
-        </button>
-      ))}
+      <div className="bottom-nav-inner">
+        {navigationItems.map(([key, icon, label]) => (
+          <button
+            key={key}
+            type="button"
+            className={active === key ? 'nav-item active' : 'nav-item'}
+            aria-current={active === key ? 'page' : undefined}
+            onClick={() => navigate(key === 'exchange' ? '/' : key === 'profile' ? '/profile' : `/${key}`)}
+          >
+            <Icon filled={active === key}>{icon}</Icon>
+            <span>{label}</span>
+          </button>
+        ))}
+      </div>
     </nav>
   )
 }

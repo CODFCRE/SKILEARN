@@ -9,6 +9,7 @@ import { Verification } from '../features/verification/Verification.jsx'
 import { Chat } from '../features/chat/Chat.jsx'
 import { Profile } from '../features/profile/Profile.jsx'
 import { Login } from '../features/auth/Login.jsx'
+import { AuthError } from '../features/auth/AuthError.jsx'
 
 function App() {
   const [path, setPath] = useState(window.location.pathname)
@@ -27,6 +28,7 @@ function App() {
   if (path === '/chat') return <Chat />
   if (path === '/profile') return <Profile />
   if (path === '/login') return <Login />
+  if (path === '/auth/error') return <AuthError />
   return <Exchange />
 }
 

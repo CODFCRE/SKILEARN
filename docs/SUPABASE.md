@@ -53,13 +53,19 @@ The schema creates:
 
 In **Authentication -> Providers**:
 
-- Enable Email provider for email/password login.
-- Enable Google provider for Google OAuth.
-- Add the Google client ID and secret from Google Cloud Console.
+- Enable the Email provider.
+- Set **Authentication -> Email Templates -> Magic Link** to include the numeric token, for example:
 
-The `profiles` row is created automatically when a new `auth.users` record is created. The trigger copies the user's email and basic name metadata.
+  ```text
+  Your Skilearn sign-in code is {{ .Token }}
+  ```
 
-## 5. Google OAuth URLs
+- Also update **Confirm signup** to use `{{ .Token }}` if that template is used for new accounts. Do not rely on `{{ .ConfirmationURL }}` for the code-entry flow.
+- Configure SMTP under **Project Settings -> Authentication -> SMTP Settings** for reliable delivery outside Supabase's limited test-email service.
+
+The app sends a one-time email code with `signInWithOtp` and verifies it with `verifyOtp`. A first-time email automatically creates an account. When Supabase creates the auth user, the database trigger creates a `profiles` row and copies the user's email and basic name metadata.
+
+## 5. Optional Google OAuth URLs
 
 In Google Cloud Console, add this authorized redirect URI:
 
@@ -85,12 +91,16 @@ http://127.0.0.1:5174/profile
 http://localhost:5174/
 http://localhost:5174/login
 http://localhost:5174/profile
+http://localhost:8080/
+http://localhost:8080/login
+http://localhost:8080/profile
+http://localhost:8080/auth/error
 https://skilearn-tan.vercel.app/
 https://skilearn-tan.vercel.app/login
 https://skilearn-tan.vercel.app/profile
 ```
 
-The login screen calls `supabase.auth.signInWithOAuth({ provider: 'google' })` and redirects to the current app's `/profile` route.
+The app verifies the emailed code on the login screen and routes successful authentication to `/profile`. `/auth/error` displays errors returned during authentication.
 
 ## 6. Row Level Security
 
@@ -134,6 +144,8 @@ The existing API downloads from the `files` bucket through `GET /api/files/*path
 | Wallet | `credit_balances`, `credit_ledger` |
 | Skill detail | `skills`, `profiles`, `skill_availability` |
 
+The client uses the authenticated Supabase session and the public anon key for these queries; row-level security applies. Email verification submissions are saved with `pending` status for review and do not automatically mark a profile as verified. Credit ledger entries are read-only to the client; credit settlement requires trusted server-side logic.
+
 ## 9. Vercel Environment Variables
 
 Configure both client and server values in Vercel:
@@ -149,11 +161,10 @@ Use the same project URL and anon key for both services. Redeploy after adding o
 
 ## 10. Verification Checklist
 
-- Create a test account with email/password.
+- Create or sign in to a test account with the email OTP flow.
 - Confirm a `profiles` row is created.
-- Sign in through `/login`.
-- Test Google OAuth after configuring the provider URLs.
+- Request a skill listing and confirm it appears on Exchange after publishing.
+- Create a session and confirm it appears in the session list.
 - Run `GET /api/health` and confirm the response is connected.
 - Upload a test verification file under the user's UUID folder.
-- Create a published skill and confirm it appears only to authenticated users.
 - Confirm a user cannot read another user's ledger or private files.

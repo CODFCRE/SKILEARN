@@ -8,7 +8,7 @@ The repository root contains `vercel.json` with two services:
 - `server` runs from `server/` using Express and receives `/api/*` traffic.
 
 The client catch-all rewrite must remain after the API rewrite so API requests are not sent to the frontend.
-The client service rewrites frontend paths to `/index.html`, so routes such as `/login` and `/profile` work when opened directly.
+The client service rewrites frontend paths to `/index.html`, so routes such as `/login`, `/profile`, and `/auth/error` work when opened directly.
 
 ## Required Environment Variables
 
@@ -26,7 +26,7 @@ VITE_SUPABASE_URL
 VITE_SUPABASE_ANON_KEY
 ```
 
-Add the deployed client URL and its `/login` and `/profile` paths to the Supabase Auth URL configuration and OAuth redirect allowlists. Successful OAuth login redirects to `/profile`.
+Add the deployed client URL and its `/login`, `/profile`, and `/auth/error` paths to the Supabase Auth URL configuration and OAuth redirect allowlists. OAuth callbacks use `/auth/error` to report failures; successful authentication continues to `/profile`.
 
 ## Google OAuth Setup
 

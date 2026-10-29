@@ -1,21 +1,49 @@
-﻿import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Header, Icon, Screen } from '../../shared/components.jsx'
+import { supabase } from '../../shared/lib/supabase.js'
+import { navigate } from '../../shared/lib/navigation.js'
 
-const listingCategories = [
-  ['code', 'Tech'],
-  ['palette', 'Arts'],
-  ['menu_book', 'Academics'],
-  ['translate', 'Languages'],
-  ['fitness_center', 'Fitness'],
-]
 const weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 export function SkillListing() {
   const [title, setTitle] = useState('')
-  const [category, setCategory] = useState('Tech')
-  const [rate, setRate] = useState('1.5')
+  const [description, setDescription] = useState('')
+  const [category, setCategory] = useState('')
+  const [categories, setCategories] = useState([])
+  const [rate, setRate] = useState('')
   const [format, setFormat] = useState('online')
-  const [activeDays, setActiveDays] = useState([0, 2, 3])
+  const [activeDays, setActiveDays] = useState([])
+  const [startTime, setStartTime] = useState('')
+  const [endTime, setEndTime] = useState('')
   const [published, setPublished] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [savedSkillId, setSavedSkillId] = useState(null)
+
+  useEffect(() => {
+    let active = true
+    const loadCategories = async () => {
+      if (!supabase) return
+      try {
+        const { data: authData, error: authError } = await supabase.auth.getUser()
+        if (authError) throw authError
+        if (!authData.user) return
+        const { data, error: categoryError } = await supabase
+          .from('skills')
+          .select('category')
+          .order('category')
+        if (categoryError) throw categoryError
+        if (active) setCategories([...new Set((data || []).map((skill) => skill.category).filter(Boolean))])
+      } catch (requestError) {
+        console.error('Unable to load skill categories:', requestError)
+        if (active) setError(requestError instanceof Error ? requestError.message : 'Unable to load skill categories.')
+      }
+    }
+
+    loadCategories()
+    return () => {
+      active = false
+    }
+  }, [])
 
   const toggleDay = (index) => {
     setActiveDays((currentDays) => (
@@ -25,9 +53,83 @@ export function SkillListing() {
     ))
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    setPublished(true)
+    setError('')
+
+    if (!supabase) {
+      setError('Supabase is not configured. Set the client VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.')
+      return
+    }
+
+    if (activeDays.length && (!startTime || !endTime || startTime >= endTime)) {
+      setError('Choose an availability start and end time; the end must be later than the start.')
+      return
+    }
+
+    setSaving(true)
+    try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError) throw sessionError
+      if (!sessionData.session) {
+        setError('Sign in before publishing a skill listing.')
+        return
+      }
+
+      const { data: userData, error: userError } = await supabase.auth.getUser()
+      if (userError) throw userError
+      if (!userData.user) {
+        setError('Sign in before publishing a skill listing.')
+        return
+      }
+
+      let skillId = savedSkillId
+      if (!skillId) {
+        const { data: skill, error: skillError } = await supabase
+          .from('skills')
+          .insert({
+            owner_id: userData.user.id,
+            title: title.trim(),
+            description: description.trim() || null,
+            category,
+            credit_rate: Number(rate),
+            session_format: format === 'in-person' ? 'in_person' : 'online',
+            status: 'published',
+          })
+          .select('id')
+          .single()
+
+        if (skillError) throw skillError
+        skillId = skill.id
+        setSavedSkillId(skillId)
+      }
+
+      if (activeDays.length) {
+        const postgresWeekdays = [1, 2, 3, 4, 5, 6, 0]
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+        const availability = activeDays.map((day) => ({
+          skill_id: skillId,
+          weekday: postgresWeekdays[day],
+          start_time: startTime,
+          end_time: endTime,
+          timezone,
+        }))
+        const { error: availabilityError } = await supabase
+          .from('skill_availability')
+          .insert(availability)
+
+        if (availabilityError) {
+          throw new Error(`The skill was saved, but its availability could not be saved: ${availabilityError.message}`)
+        }
+      }
+
+      setPublished(true)
+    } catch (requestError) {
+      console.error('Unable to publish skill listing:', requestError)
+      setError(requestError instanceof Error ? requestError.message : 'Unable to save the skill listing.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -71,54 +173,58 @@ export function SkillListing() {
                 maxLength="60"
                 onChange={(event) => setTitle(event.target.value)}
                 placeholder="e.g. Python Backend & Data Structures"
+                minLength="2"
+                required
               />
               <Icon filled>verified</Icon>
             </div>
 
+            <label className="field-label" htmlFor="skill-description">
+              <span>Description</span>
+              <small>Tell peers what you can teach</small>
+            </label>
+            <textarea
+              id="skill-description"
+              className="listing-description"
+              value={description}
+              maxLength={2000}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder="Describe your experience and what learners can expect."
+            />
+
             <div className="field-group">
               <div className="field-label">
                 <span>Category</span>
-                <small>Selected: {category}</small>
+                <small>Choose an existing category or enter a new one</small>
               </div>
-              <div className="choice-row">
-                {listingCategories.map(([icon, item]) => (
-                  <button
-                    type="button"
-                    key={item}
-                    className={category === item ? 'choice active' : 'choice'}
-                    onClick={() => setCategory(item)}
-                  >
-                    <Icon>{icon}</Icon>
-                    {item}
-                  </button>
-                ))}
-              </div>
+              <input
+                className="listing-select-input"
+                list="skill-categories"
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+                placeholder="e.g. Tech, Arts, Languages"
+                required
+              />
+              <datalist id="skill-categories">
+                {categories.map((item) => <option key={item} value={item} />)}
+              </datalist>
             </div>
 
             <div className="field-group">
               <div className="field-label">
                 <span>Time-Credit Rate</span>
-                <small>Fair campus benchmark</small>
+                <small>Credits per hour</small>
               </div>
-              <div className="rate-grid">
-                {['1.0', '1.5', '2.0'].map((item, index) => (
-                  <button
-                    type="button"
-                    key={item}
-                    className={rate === item ? 'rate-choice active' : 'rate-choice'}
-                    onClick={() => setRate(item)}
-                  >
-                    {index === 1 && (
-                      <b>
-                        <Icon filled>star</Icon>
-                        Popular
-                      </b>
-                    )}
-                    <strong>{item}</strong>
-                    <small>Credits/hr</small>
-                  </button>
-                ))}
-              </div>
+              <input
+                className="listing-select-input"
+                type="number"
+                min="0.01"
+                step="0.01"
+                value={rate}
+                onChange={(event) => setRate(event.target.value)}
+                placeholder="Enter credits per hour"
+                required
+              />
             </div>
 
             <div className="field-group">
@@ -167,6 +273,29 @@ export function SkillListing() {
                   </button>
                 ))}
               </div>
+              <div className="availability-time-row">
+                <label>
+                  <span>From</span>
+                  <input
+                    type="time"
+                    value={startTime}
+                    onChange={(event) => setStartTime(event.target.value)}
+                    disabled={!activeDays.length}
+                    required={activeDays.length > 0}
+                  />
+                </label>
+                <label>
+                  <span>Until</span>
+                  <input
+                    type="time"
+                    value={endTime}
+                    onChange={(event) => setEndTime(event.target.value)}
+                    disabled={!activeDays.length}
+                    required={activeDays.length > 0}
+                  />
+                </label>
+                <small>Times use your local timezone.</small>
+              </div>
             </div>
 
             <div className="listing-summary">
@@ -177,8 +306,23 @@ export function SkillListing() {
               <b>Skill listing</b>
             </div>
 
-            <button className="primary-action" type="submit">
-              {published ? 'Listing saved' : 'Publish Skill Listing (+1 Bonus Credit)'}
+            {error && (
+              <div className="listing-feedback error" role="alert">
+                <span>{error}</span>
+                {error === 'Sign in before publishing a skill listing.' && (
+                  <button type="button" onClick={() => navigate('/login')}>Log in</button>
+                )}
+              </div>
+            )}
+            {published && (
+              <p className="listing-feedback success" role="status">
+                {activeDays.length
+                  ? 'Your skill and weekly availability have been saved.'
+                  : 'Your skill has been saved.'}
+              </p>
+            )}
+            <button className="primary-action" type="submit" disabled={saving || published}>
+              {saving ? 'Saving listing...' : published ? 'Listing saved' : 'Publish Skill Listing'}
               <Icon>arrow_forward</Icon>
             </button>
           </form>
@@ -195,4 +339,3 @@ export function SkillListing() {
     </Screen>
   )
 }
-
