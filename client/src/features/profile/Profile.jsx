@@ -9,6 +9,10 @@ export function Profile() {
   const [actionError, setActionError] = useState('')
   const [loading, setLoading] = useState(supabaseConfigured)
   const [signingOut, setSigningOut] = useState(false)
+  const [editingProfile, setEditingProfile] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
@@ -84,7 +88,10 @@ export function Profile() {
           balanceResult.error,
         ].filter(Boolean)
 
-        let avatarUrl = ''
+        let avatarUrl = user.user_metadata?.avatar_url
+          || user.user_metadata?.picture
+          || user.user_metadata?.photo_url
+          || ''
         if (profileResult.data?.avatar_path) {
           const { data: avatarData, error: avatarError } = await supabase.storage
             .from('files')
@@ -175,6 +182,93 @@ export function Profile() {
     ? 'â€”'
     : `${Number(profileData.balance).toFixed(2)} Cr`
 
+  const beginProfileEdit = () => {
+    setNameDraft(displayName)
+    setActionError('')
+    setEditingProfile(true)
+  }
+
+  const saveProfileName = async (event) => {
+    event.preventDefault()
+    if (!supabase || !user || savingProfile) return
+
+    const display_name = nameDraft.trim()
+    if (display_name.length < 2 || display_name.length > 40) {
+      setActionError('Your username must be between 2 and 40 characters.')
+      return
+    }
+
+    setSavingProfile(true)
+    setActionError('')
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ display_name })
+        .eq('id', user.id)
+        .select('display_name')
+        .single()
+      if (error) throw error
+
+      setProfileData((current) => ({
+        ...current,
+        profile: { ...current.profile, display_name: data.display_name },
+      }))
+      setEditingProfile(false)
+    } catch (error) {
+      console.error('Unable to update profile name:', error)
+      setActionError(error instanceof Error ? error.message : 'Unable to update your username.')
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
+  const uploadAvatar = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file || !supabase || !user || uploadingAvatar) return
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setActionError('Choose a JPG, PNG, or WebP image.')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setActionError('Choose an image smaller than 5 MB.')
+      return
+    }
+
+    setUploadingAvatar(true)
+    setActionError('')
+    try {
+      const extension = file.type === 'image/jpeg' ? 'jpg' : file.type.split('/')[1]
+      const avatarPath = `${user.id}/profile/${crypto.randomUUID()}.${extension}`
+      const { error: uploadError } = await supabase.storage
+        .from('files')
+        .upload(avatarPath, file, { upsert: false, contentType: file.type })
+      if (uploadError) throw uploadError
+
+      const { data: avatarData, error: avatarError } = await supabase.storage
+        .from('files')
+        .createSignedUrl(avatarPath, 3600)
+      if (avatarError) throw avatarError
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ avatar_path: avatarPath })
+        .eq('id', user.id)
+      if (profileError) throw profileError
+
+      setProfileData((current) => ({
+        ...current,
+        profile: { ...current.profile, avatar_path: avatarPath },
+        avatarUrl: avatarData.signedUrl,
+      }))
+    } catch (error) {
+      console.error('Unable to update profile photo:', error)
+      setActionError(error instanceof Error ? error.message : 'Unable to update your profile photo.')
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
   return (
     <Screen active="profile" className="design-shell profile-shell">
       <Header
@@ -216,15 +310,36 @@ export function Profile() {
                     )}
                   </div>
                   {user && (
-                    <button
-                      className="profile-signout"
-                      type="button"
-                      onClick={handleSignOut}
-                      disabled={signingOut}
-                    >
-                      <Icon>logout</Icon>
-                      {signingOut ? 'Signing out...' : 'Sign out'}
-                    </button>
+                    <div className="profile-identity-actions">
+                      <label className="profile-edit-button" aria-disabled={uploadingAvatar}>
+                        <Icon>photo_camera</Icon>
+                        {uploadingAvatar ? 'Uploading...' : 'Change photo'}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={uploadAvatar}
+                          disabled={uploadingAvatar}
+                          aria-label="Upload a profile photo"
+                        />
+                      </label>
+                      <button
+                        className="profile-edit-button"
+                        type="button"
+                        onClick={beginProfileEdit}
+                      >
+                        <Icon>edit</Icon>
+                        Edit profile
+                      </button>
+                      <button
+                        className="profile-signout"
+                        type="button"
+                        onClick={handleSignOut}
+                        disabled={signingOut}
+                      >
+                        <Icon>logout</Icon>
+                        {signingOut ? 'Signing out...' : 'Sign out'}
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -237,6 +352,28 @@ export function Profile() {
                   </div>
                   <p>{user ? email : 'Sign in to view your account details'}{user && <> <span>Â·</span> Member since {memberSince}</>}</p>
                 </div>
+
+                {editingProfile && (
+                  <form className="profile-edit-form" onSubmit={saveProfileName}>
+                    <label htmlFor="profile-display-name">Username</label>
+                    <input
+                      id="profile-display-name"
+                      value={nameDraft}
+                      onChange={(event) => setNameDraft(event.target.value)}
+                      maxLength={40}
+                      autoComplete="nickname"
+                      required
+                    />
+                    <div>
+                      <button type="submit" disabled={savingProfile}>
+                        {savingProfile ? 'Saving...' : 'Save'}
+                      </button>
+                      <button type="button" onClick={() => setEditingProfile(false)} disabled={savingProfile}>
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
 
                 <div className="profile-stats">
                   <div>

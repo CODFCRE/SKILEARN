@@ -2,7 +2,7 @@
 
 This document describes the database, authentication, storage, and environment setup for Skilearn.
 
-The executable schema is [server/supabase/schema.sql](../server/supabase/schema.sql). Run it in the Supabase SQL Editor for a new project. For an existing project, review each statement against the current schema before applying it as a migration.
+The executable schema is [server/supabase/schema.sql](../server/supabase/schema.sql). Run it in the Supabase SQL Editor for a new project. For an existing project, run the [credit settlement migration](../server/supabase/migrations/20261029_session_credit_settlement.sql) in the Supabase SQL Editor.
 
 ## 1. Create a Supabase Project
 
@@ -42,9 +42,9 @@ The schema creates:
 | `verification_submissions` | Academic email and student ID verification |
 | `skills` | Exchange and offer-a-skill screens |
 | `skill_availability` | Weekly availability controls |
-| `sessions` | Booking, scheduling, and session status |
+| `sessions` | Booking, scheduling, and two-party completion confirmation |
 | `session_messages` | Mentorship chat |
-| `credit_ledger` | Credit earning, spending, reservation, and release |
+| `credit_ledger` | Welcome credits, session earning, and spending |
 | `credit_balances` | Current balance view |
 | `session_ratings` | Post-session ratings and feedback |
 | `items` | Compatibility for the current `/api/health` endpoint |
@@ -63,7 +63,7 @@ In **Authentication -> Providers**:
 - Also update **Confirm signup** to use `{{ .Token }}` if that template is used for new accounts. Do not rely on `{{ .ConfirmationURL }}` for the code-entry flow.
 - Configure SMTP under **Project Settings -> Authentication -> SMTP Settings** for reliable delivery outside Supabase's limited test-email service.
 
-The app sends a one-time email code with `signInWithOtp` and verifies it with `verifyOtp`. A first-time email automatically creates an account. When Supabase creates the auth user, the database trigger creates a `profiles` row and copies the user's email and basic name metadata.
+The app sends a one-time email code with `signInWithOtp` and verifies it with `verifyOtp`. A first-time email automatically creates an account. When Supabase creates the auth user, the database trigger creates a `profiles` row and copies the user's email and basic name metadata. Google sign-ins use the provider avatar from auth metadata until the user uploads a profile photo.
 
 ## 5. Optional Google OAuth URLs
 
@@ -118,7 +118,9 @@ The schema enables RLS on every application table.
 - Verification submissions are private to the submitting user.
 - Storage files must be placed under a folder named with the authenticated user's UUID.
 
-Credit mutations, verification approval, and session state transitions should be performed by the Express API using validated server logic. Do not let the browser directly create credit ledger adjustments.
+Credit ledger rows cannot be written directly by clients. New accounts receive a 5-credit welcome bonus; the migration grants the same one-time bonus to existing profiles that do not already have one. `complete_session` is an authenticated, transactional database function: both session participants must confirm, and the learner must have enough credits before the learner is charged and the mentor is credited. The function can be called repeatedly without double-settling a completed session.
+
+The database prevents direct client updates from marking a session completed without both confirmation timestamps and matching ledger entries. Users can update their own display name and profile photo; photos are uploaded under their UUID folder in the private `files` bucket.
 
 ## 7. Storage
 
@@ -145,11 +147,11 @@ The existing API downloads from the `files` bucket through `GET /api/files/*path
 | Skill listing | `skills`, `skill_availability` |
 | Verification | `verification_submissions`, `profiles`, `student-verification` bucket |
 | Sessions | `sessions`, `skills`, `profiles` |
-| Chat | `session_messages`, `sessions` |
+| Chat | `session_messages`, `sessions`, `complete_session` |
 | Wallet | `credit_balances`, `credit_ledger` |
 | Skill detail | `skills`, `profiles`, `skill_availability` |
 
-The client uses the authenticated Supabase session and the public anon key for these queries; row-level security applies. Email verification submissions are saved with `pending` status for review and do not automatically mark a profile as verified. Credit ledger entries are read-only to the client; credit settlement requires trusted server-side logic.
+The client uses the authenticated Supabase session and the public anon key for these queries; row-level security applies. Email verification submissions are saved with `pending` status for review and do not automatically mark a profile as verified. Credit ledger entries are read-only to the client; session settlement runs atomically in the database function.
 
 ## 9. Vercel Environment Variables
 

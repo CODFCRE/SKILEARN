@@ -8,11 +8,13 @@ export function Chat() {
   const [userId, setUserId] = useState(null)
   const [session, setSession] = useState(null)
   const [peerName, setPeerName] = useState('Campus member')
+  const [settlementDone, setSettlementDone] = useState(false)
   const [messages, setMessages] = useState([])
   const [message, setMessage] = useState('')
   const [rating, setRating] = useState(0)
   const [loading, setLoading] = useState(Boolean(supabase))
   const [sending, setSending] = useState(false)
+  const [confirmingCompletion, setConfirmingCompletion] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
@@ -32,7 +34,7 @@ export function Chat() {
 
         const { data: sessionData, error: sessionError } = await supabase
           .from('sessions')
-          .select('id,skill_id,mentor_id,learner_id,starts_at,ends_at,status,credits_reserved')
+          .select('id,skill_id,mentor_id,learner_id,starts_at,ends_at,status,credits_reserved,mentor_completed_at,learner_completed_at')
           .eq('id', sessionId)
           .maybeSingle()
         if (sessionError) throw sessionError
@@ -41,15 +43,17 @@ export function Chat() {
         const peerId = sessionData.mentor_id === authData.user.id
           ? sessionData.learner_id
           : sessionData.mentor_id
-        const [profileResult, skillResult, messagesResult, ratingResult] = await Promise.all([
+        const [profileResult, skillResult, messagesResult, ratingResult, settlementResult] = await Promise.all([
           supabase.from('profiles').select('display_name').eq('id', peerId).maybeSingle(),
           supabase.from('skills').select('title').eq('id', sessionData.skill_id).maybeSingle(),
           supabase.from('session_messages').select('id,sender_id,body,sent_at')
             .eq('session_id', sessionId).order('sent_at', { ascending: true }),
           supabase.from('session_ratings').select('rating')
             .eq('session_id', sessionId).eq('reviewer_id', authData.user.id).maybeSingle(),
+          supabase.from('credit_ledger').select('id')
+            .eq('session_id', sessionId).eq('user_id', authData.user.id).maybeSingle(),
         ])
-        for (const result of [profileResult, skillResult, messagesResult, ratingResult]) {
+        for (const result of [profileResult, skillResult, messagesResult, ratingResult, settlementResult]) {
           if (result.error) throw result.error
         }
 
@@ -59,6 +63,7 @@ export function Chat() {
           setPeerName(profileResult.data?.display_name || 'Campus member')
           setMessages(messagesResult.data || [])
           setRating(ratingResult.data?.rating || 0)
+          setSettlementDone(Boolean(settlementResult.data))
         }
       } catch (requestError) {
         console.error('Unable to load session chat:', requestError)
@@ -99,23 +104,39 @@ export function Chat() {
   }
 
   const completeSession = async () => {
-    if (!supabase || !session) return
+    if (!supabase || !session || confirmingCompletion) return
     setError('')
+    setNotice('')
+    setConfirmingCompletion(true)
     try {
-      const { data, error: updateError } = await supabase
-        .from('sessions')
-        .update({ status: 'completed' })
-        .eq('id', session.id)
-        .select('id,status')
-        .single()
-      if (updateError) throw updateError
-      setSession((current) => ({ ...current, status: data.status }))
-      setNotice('Session marked complete. Credit settlement is handled separately.')
+      const { data, error: completionError } = await supabase.rpc('complete_session', {
+        p_session_id: session.id,
+      })
+      if (completionError) throw completionError
+      if (!data || typeof data.status !== 'string' || typeof data.settled !== 'boolean') {
+        throw new Error('The session completion response was invalid. Please reload and try again.')
+      }
+
+      setSession((current) => ({ ...current, ...data }))
+      setSettlementDone(data.settled)
+      setNotice(data.settled
+        ? `${Number(session.credits_reserved).toFixed(2)} credits transferred to the session giver.`
+        : 'Your confirmation is saved. The session will settle after the other participant confirms.')
     } catch (requestError) {
       console.error('Unable to complete session:', requestError)
       setError(requestError instanceof Error ? requestError.message : 'Unable to complete this session.')
+    } finally {
+      setConfirmingCompletion(false)
     }
   }
+
+  const isMentor = session?.mentor_id === userId
+  const currentUserConfirmed = isMentor
+    ? Boolean(session?.mentor_completed_at)
+    : Boolean(session?.learner_completed_at)
+  const otherParticipantConfirmed = isMentor
+    ? Boolean(session?.learner_completed_at)
+    : Boolean(session?.mentor_completed_at)
 
   const submitRating = async (value) => {
     if (!supabase || !session || !userId) return
@@ -188,20 +209,39 @@ export function Chat() {
           </div>
         )}
 
-        {session.status !== 'completed' && (
+        {session.status !== 'cancelled' && (session.status !== 'completed' || !settlementDone) && (
           <section className="escrow-card">
             <div className="escrow-heading">
               <span><Icon filled>verified</Icon></span>
-              <div><h3>Session status</h3><p>{session.status.replaceAll('_', ' ')}</p></div>
+              <div>
+                <h3>Session status</h3>
+                <p>{session.status.replaceAll('_', ' ')}</p>
+                <small>
+                  {currentUserConfirmed
+                    ? 'Your completion is confirmed; waiting for the other participant.'
+                    : otherParticipantConfirmed
+                      ? 'The other participant confirmed. Confirm to settle the credits.'
+                      : 'Both participants must confirm before credits are transferred.'}
+                </small>
+              </div>
               <b>{Number(session.credits_reserved).toFixed(2)} Cr</b>
             </div>
-            <button className="complete-button" onClick={completeSession}>
-              <Icon>check_circle</Icon>Mark session complete
+            <button
+              className="complete-button"
+              onClick={completeSession}
+              disabled={confirmingCompletion || currentUserConfirmed}
+            >
+              <Icon>check_circle</Icon>
+              {confirmingCompletion
+                ? 'Saving confirmation...'
+                : currentUserConfirmed
+                  ? 'Completion confirmed'
+                  : 'Confirm session complete'}
             </button>
           </section>
         )}
 
-        {session.status === 'completed' && !rating && (
+        {session.status === 'completed' && settlementDone && !rating && (
           <section className="escrow-card">
             <div className="rating-row">
               <span>Rate {peerName}:</span>

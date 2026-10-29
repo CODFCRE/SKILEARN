@@ -4205,3 +4205,143 @@ html[data-theme='dark'] .notification-state.notification-error button {
     padding-left: 22px;
   }
 }
+
+.profile-identity-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.profile-shell .profile-edit-button {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 9px;
+  color: var(--olive);
+  background: #edf1e5;
+  border: 1px solid #d5ddc8;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+.profile-shell .profile-edit-button:hover:not([aria-disabled='true']) {
+  background: #e1e9d2;
+  transform: translateY(-1px);
+}
+
+.profile-edit-button .material-symbols-outlined {
+  font-size: 15px;
+}
+
+.profile-edit-button input[type='file'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.profile-edit-button:focus-within {
+  outline: 2px solid var(--olive);
+  outline-offset: 2px;
+}
+
+.profile-edit-form {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 13px;
+  background: #f2f5ec;
+  border: 1px solid #dfe4d5;
+  border-radius: 14px;
+}
+
+.profile-edit-form label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.profile-edit-form input {
+  min-height: 40px;
+  padding: 8px 11px;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid #c5c8b6;
+  border-radius: 10px;
+}
+
+.profile-edit-form > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.profile-edit-form button {
+  min-height: 34px;
+  padding: 6px 14px;
+  color: var(--olive);
+  background: transparent;
+  border: 1px solid #aeb995;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.profile-edit-form button[type='submit'] {
+  color: #fff;
+  background: var(--olive);
+}
+
+.profile-edit-form button:disabled {
+  opacity: 0.65;
+}
+
+.profile-shell .profile-identity-actions .profile-signout {
+  min-height: 34px;
+  padding: 6px 9px;
+  font-size: 10px;
+}
+
+html[data-theme='dark'] .profile-shell .profile-edit-button {
+  color: #d1ed92;
+  background: #293522;
+  border-color: #46523a;
+}
+
+html[data-theme='dark'] .profile-shell .profile-edit-button:hover:not([aria-disabled='true']) {
+  background: #35432b;
+}
+
+html[data-theme='dark'] .profile-edit-form {
+  background: #20291d;
+  border-color: #46523a;
+}
+
+html[data-theme='dark'] .profile-edit-form label {
+  color: var(--muted);
+}
+
+html[data-theme='dark'] .profile-edit-form input {
+  color: var(--ink);
+  background: #171d13;
+  border-color: #46523a;
+}
+
+html[data-theme='dark'] .profile-edit-form button {
+  color: #d1ed92;
+  border-color: #64734f;
+}
+
+html[data-theme='dark'] .profile-edit-form button[type='submit'] {
+  color: #17200f;
+  background: #a8c76a;
+}
