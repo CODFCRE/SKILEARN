@@ -154,6 +154,20 @@ create table if not exists public.sessions (
   check (ends_at > starts_at)
 );
 
+create table if not exists public.call_sessions (
+  id uuid primary key default gen_random_uuid(),
+  caller_id uuid not null references auth.users(id) on delete cascade,
+  recipient_id uuid not null references auth.users(id) on delete cascade,
+  status text not null default 'ringing'
+    check (status in ('ringing', 'accepted', 'declined', 'ended', 'missed')),
+  created_at timestamptz not null default timezone('utc', now()),
+  check (caller_id <> recipient_id)
+);
+
+create index if not exists call_sessions_incoming_idx
+  on public.call_sessions (recipient_id, created_at desc)
+  where status = 'ringing';
+
 alter table public.sessions
   add column if not exists mentor_completed_at timestamptz,
   add column if not exists learner_completed_at timestamptz;
@@ -507,6 +521,7 @@ alter table public.skills enable row level security;
 alter table public.skill_availability enable row level security;
 alter table public.sessions enable row level security;
 alter table public.session_messages enable row level security;
+alter table public.call_sessions enable row level security;
 alter table public.credit_ledger enable row level security;
 alter table public.session_ratings enable row level security;
 alter table public.items enable row level security;
@@ -526,6 +541,9 @@ drop policy if exists "Learners request sessions" on public.sessions;
 drop policy if exists "Session participants update sessions" on public.sessions;
 drop policy if exists "Session participants view messages" on public.session_messages;
 drop policy if exists "Session participants send messages" on public.session_messages;
+drop policy if exists "Call participants view their calls" on public.call_sessions;
+drop policy if exists "Users start calls" on public.call_sessions;
+drop policy if exists "Call participants update call status" on public.call_sessions;
 drop policy if exists "Users view their credit ledger" on public.credit_ledger;
 drop policy if exists "Session participants view ratings" on public.session_ratings;
 drop policy if exists "Participants submit ratings" on public.session_ratings;
@@ -580,6 +598,18 @@ create policy "Session participants send messages"
     and exists (select 1 from public.sessions where sessions.id = session_messages.session_id and (sessions.mentor_id = auth.uid() or sessions.learner_id = auth.uid()))
   );
 
+create policy "Call participants view their calls"
+  on public.call_sessions for select to authenticated
+  using (caller_id = auth.uid() or recipient_id = auth.uid());
+create policy "Users start calls"
+  on public.call_sessions for insert to authenticated
+  with check (caller_id = auth.uid() and recipient_id <> auth.uid());
+create policy "Call participants update call status"
+  on public.call_sessions for update to authenticated
+  using (caller_id = auth.uid() or recipient_id = auth.uid())
+  with check (caller_id = auth.uid() or recipient_id = auth.uid());
+grant select, insert, update on public.call_sessions to authenticated;
+
 create policy "Users view their credit ledger"
   on public.credit_ledger for select to authenticated using (user_id = auth.uid());
 
@@ -607,6 +637,7 @@ on conflict (id) do nothing;
 drop policy if exists "Users upload their own files" on storage.objects;
 drop policy if exists "Users view their own files" on storage.objects;
 drop policy if exists "Users delete their own files" on storage.objects;
+drop policy if exists "Signed-in users can view active profile photos" on storage.objects;
 
 create policy "Users upload their own files"
   on storage.objects for insert to authenticated with check (
@@ -618,8 +649,40 @@ create policy "Users view their own files"
     bucket_id in ('files', 'student-verification')
     and (storage.foldername(name))[1] = auth.uid()::text
   );
+create policy "Signed-in users can view active profile photos"
+  on storage.objects for select to authenticated using (
+    bucket_id = 'files'
+    and exists (
+      select 1
+      from public.profiles
+      where profiles.avatar_path = storage.objects.name
+    )
+  );
 create policy "Users delete their own files"
   on storage.objects for delete to authenticated using (
     bucket_id in ('files', 'student-verification')
     and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "Call participants can receive private signaling" on realtime.messages;
+drop policy if exists "Call participants can send private signaling" on realtime.messages;
+create policy "Call participants can receive private signaling"
+  on realtime.messages for select to authenticated using (
+    split_part(realtime.topic(), ':', 1) = 'skilearn-call'
+    and exists (
+      select 1
+      from public.call_sessions
+      where call_sessions.id::text = split_part(realtime.topic(), ':', 2)
+        and auth.uid() in (call_sessions.caller_id, call_sessions.recipient_id)
+    )
+  );
+create policy "Call participants can send private signaling"
+  on realtime.messages for insert to authenticated with check (
+    split_part(realtime.topic(), ':', 1) = 'skilearn-call'
+    and exists (
+      select 1
+      from public.call_sessions
+      where call_sessions.id::text = split_part(realtime.topic(), ':', 2)
+        and auth.uid() in (call_sessions.caller_id, call_sessions.recipient_id)
+    )
   );

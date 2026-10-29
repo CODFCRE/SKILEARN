@@ -2,7 +2,7 @@
 
 This document describes the database, authentication, storage, and environment setup for Skilearn.
 
-The executable schema is [server/supabase/schema.sql](../server/supabase/schema.sql). Run it in the Supabase SQL Editor for a new project. For an existing project, run the [credit settlement migration](../server/supabase/migrations/20261029_session_credit_settlement.sql) in the Supabase SQL Editor.
+The executable schema is [server/supabase/schema.sql](../server/supabase/schema.sql). Run it in the Supabase SQL Editor for a new project. For an existing project, run the [credit settlement migration](../server/supabase/migrations/20261029_session_credit_settlement.sql) and the [public profiles and WebRTC calls migration](../server/supabase/migrations/20261029_public_profiles_webrtc_calls.sql) in the Supabase SQL Editor.
 
 ## 1. Create a Supabase Project
 
@@ -43,6 +43,7 @@ The schema creates:
 | `skills` | Exchange and offer-a-skill screens |
 | `skill_availability` | Weekly availability controls |
 | `sessions` | Booking, scheduling, and two-party completion confirmation |
+| `call_sessions` | Participant-only video call invitations and status |
 | `session_messages` | Mentorship chat |
 | `credit_ledger` | Welcome credits, session earning, and spending |
 | `credit_balances` | Current balance view |
@@ -114,13 +115,16 @@ The schema enables RLS on every application table.
 - Published skills are visible to authenticated users.
 - Users can create and edit only their own skills and availability.
 - Session data and chat messages are visible only to participants.
+- Call invitations and private Realtime signaling are restricted to the two call participants.
 - Credit ledger rows are read-only to the owning user.
 - Verification submissions are private to the submitting user.
 - Storage files must be placed under a folder named with the authenticated user's UUID.
 
 Credit ledger rows cannot be written directly by clients. New accounts receive a 5-credit welcome bonus; the migration grants the same one-time bonus to existing profiles that do not already have one. `complete_session` is an authenticated, transactional database function: both session participants must confirm, and the learner must have enough credits before the learner is charged and the mentor is credited. The function can be called repeatedly without double-settling a completed session.
 
-The database prevents direct client updates from marking a session completed without both confirmation timestamps and matching ledger entries. Users can update their own display name and profile photo; photos are uploaded under their UUID folder in the private `files` bucket.
+The database prevents direct client updates from marking a session completed without both confirmation timestamps and matching ledger entries. Users can update their own display name and profile photo; photos are uploaded under their UUID folder in the private `files` bucket. Only the currently selected profile photos are readable by other signed-in users; verification documents and other files remain private.
+
+Member profiles show the public display name, verification badge, and published skills. Video calls use browser WebRTC media with Supabase private Realtime channels for signaling. Camera and microphone access requires HTTPS (localhost is also supported). The client currently uses a public STUN server; networks with restrictive NAT/firewalls may require a TURN relay for reliable calls.
 
 ## 7. Storage
 
@@ -144,6 +148,8 @@ The existing API downloads from the `files` bucket through `GET /api/files/*path
 | --- | --- |
 | Login | `auth.users`, Supabase Auth session |
 | Exchange | `skills`, `profiles`, `skill_availability` |
+| Member profile | `profiles`, published `skills`, profile photo |
+| Video call | `call_sessions`, private Supabase Realtime signaling |
 | Skill listing | `skills`, `skill_availability` |
 | Verification | `verification_submissions`, `profiles`, `student-verification` bucket |
 | Sessions | `sessions`, `skills`, `profiles` |

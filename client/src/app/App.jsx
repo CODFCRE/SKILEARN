@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import '../styles/app.css'
 import { Exchange } from '../features/exchange/Exchange.jsx'
 import { Sessions } from '../features/sessions/Sessions.jsx'
@@ -10,8 +10,12 @@ import { Chat } from '../features/chat/Chat.jsx'
 import { Profile } from '../features/profile/Profile.jsx'
 import { Login } from '../features/auth/Login.jsx'
 import { AuthError } from '../features/auth/AuthError.jsx'
+import { MemberProfile } from '../features/profile/MemberProfile.jsx'
 import { applyTheme, getThemePreference } from '../shared/lib/theme.js'
 import { supabase } from '../shared/lib/supabase.js'
+import { navigate } from '../shared/lib/navigation.js'
+
+const Call = lazy(() => import('../features/call/Call.jsx').then((module) => ({ default: module.Call })))
 
 function App() {
   const [path, setPath] = useState(window.location.pathname)
@@ -113,12 +117,83 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!supabase) return undefined
+
+    let active = true
+    let timer
+    let userId = null
+    let checking = false
+
+    const checkIncomingCalls = async () => {
+      if (!active || !userId || checking) return
+      checking = true
+      try {
+        const { data, error } = await supabase
+          .from('call_sessions')
+          .select('id,created_at')
+          .eq('recipient_id', userId)
+          .eq('status', 'ringing')
+          .gt('created_at', new Date(Date.now() - 60_000).toISOString())
+          .order('created_at', { ascending: false })
+          .limit(1)
+        if (error) throw error
+
+        const incomingCall = data?.[0]
+        if (incomingCall && window.location.pathname !== '/call') {
+          navigate(`/call?callId=${encodeURIComponent(incomingCall.id)}`, {
+            callId: incomingCall.id,
+            direction: 'incoming',
+          })
+        }
+      } catch (error) {
+        console.error('Unable to check for incoming calls:', error)
+      } finally {
+        checking = false
+      }
+    }
+
+    const startChecking = (session) => {
+      userId = session?.user?.id || null
+      window.clearInterval(timer)
+      if (userId) {
+        void checkIncomingCalls()
+        timer = window.setInterval(checkIncomingCalls, 4000)
+      }
+    }
+
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (error) throw error
+      startChecking(data.session)
+    }).catch((error) => {
+      console.error('Unable to initialize incoming call checks:', error)
+    })
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      startChecking(session)
+    })
+
+    return () => {
+      active = false
+      window.clearInterval(timer)
+      authListener.subscription.unsubscribe()
+    }
+  }, [])
+
   if (path === '/sessions') return <Sessions />
   if (path === '/wallet') return <Wallet />
   if (path === '/skill-detail') return <SkillDetail />
   if (path === '/skill-listing') return <SkillListing />
   if (path === '/verification') return <Verification />
   if (path === '/chat') return <Chat />
+  if (path === '/call') {
+    return (
+      <Suspense fallback={<main className="call-state">Opening call...</main>}>
+        <Call />
+      </Suspense>
+    )
+  }
+  if (path === '/member-profile') return <MemberProfile />
   if (path === '/profile') return <Profile />
   if (path === '/login') return <Login />
   if (path === '/auth/error') return <AuthError />

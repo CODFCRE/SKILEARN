@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { EmptyState, Header, Icon, Screen } from '../../shared/components.jsx'
 import { navigate } from '../../shared/lib/navigation.js'
 import { supabase } from '../../shared/lib/supabase.js'
+import { SpotlightCard } from '../../shared/SpotlightCard.jsx'
 
 export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
   const [query, setQuery] = useState('')
@@ -59,7 +60,7 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
           setPeople((peopleResult.data || []).map((person) => ({
             ...person,
             displayName: person.display_name || 'Campus member',
-          })))
+          })).filter((person) => person.id !== session.user.id))
         }
       } catch (error) {
         console.error('Unable to load published skills:', error)
@@ -187,7 +188,7 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
         ) : discoveryMode === 'skills' && filteredSkills.length ? (
           <div className="skills-grid">
             {filteredSkills.map((skill) => (
-              <article
+              <SpotlightCard
                 className="profile-skill-card exchange-skill-card"
                 key={skill.id}
                 onClick={() => navigate('/skill-detail', { skillId: skill.id })}
@@ -215,7 +216,7 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
                   <span>{skill.category} · {skill.person}</span>
                 </div>
                 <strong>{Number(skill.credit_rate).toFixed(2)} Cr/hr</strong>
-              </article>
+              </SpotlightCard>
             ))}
           </div>
         ) : discoveryMode === 'people' && filteredPeople.length ? (
@@ -229,7 +230,20 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
                   : 'Offline'
 
               return (
-                <article className="people-card" key={person.id}>
+                <article
+                  className="people-card"
+                  key={person.id}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`View ${person.displayName}'s profile`}
+                  onClick={() => navigate('/member-profile', { memberId: person.id })}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      navigate('/member-profile', { memberId: person.id })
+                    }
+                  }}
+                >
                   <span className="people-avatar" aria-hidden="true">
                     {person.displayName.slice(0, 1).toUpperCase()}
                   </span>
@@ -240,16 +254,7 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
                       {availability}
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDiscoveryMode('skills')
-                      setQuery(person.displayName)
-                    }}
-                    aria-label={`View skills offered by ${person.displayName}`}
-                  >
-                    View skills
-                  </button>
+                  <span className="people-view-profile">View profile</span>
                 </article>
               )
             })}
