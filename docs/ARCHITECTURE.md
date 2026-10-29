@@ -18,14 +18,24 @@ Location: `client/`
 
 - React 19 renders the application screens.
 - Vite provides local development and production bundling.
-- `client/src/App.jsx` owns the current route switch and screen components.
-- `client/src/App.css` contains the shared visual system and responsive rules.
+- `client/src/main.jsx` mounts the React application.
+- `client/src/app/App.jsx` owns the route switch.
+- `client/src/features/` contains route screens grouped by product area.
+- `client/src/shared/components.jsx` contains reusable layout and UI primitives.
+- `client/src/shared/lib/` contains navigation and service integrations.
+- `client/src/styles/` contains global and application styles.
 - Client-side routing currently uses the History API and `popstate`.
 
 ### Server
 
 Location: `server/`
 
+- `server/src/index.js` loads environment values and starts the HTTP listener.
+- `server/src/app.js` configures Express middleware, routes, and error handling.
+- `server/src/config/` owns service configuration.
+- `server/src/middleware/` owns request middleware such as authentication.
+- `server/src/routes/` owns the HTTP API endpoints.
+- `server/supabase/` contains the database schema.
 - Express exposes the `/api` route group.
 - Helmet provides baseline security headers.
 - CORS is enabled for client access.

@@ -5,10 +5,20 @@ Skilearn is a peer-to-peer skill exchange application. Users can discover skills
 ## Repository Layout
 
 ```text
-client/                  React + Vite web application
-server/                  Express API and Supabase integration
 docs/                    Product and engineering documentation
-vercel.json              Multi-service Vercel deployment configuration
+client/                  React + Vite application
+	src/app/               Application entry and route switch
+	src/features/          Feature-owned screens
+	src/shared/            Reusable UI and client integrations
+	src/styles/            Global and application styles
+server/                  Express API and Supabase integration
+	src/app.js             Express app configuration
+	src/config/            Service configuration
+	src/middleware/        Request middleware
+	src/routes/             API route modules
+	supabase/               Database schema
+docs/                     Product and engineering documentation
+vercel.json               Multi-service Vercel deployment configuration
 ```
 
 ## Quick Start
@@ -72,6 +82,7 @@ Never commit `.env` files, private keys, or service-account credentials.
 ```powershell
 Push-Location client; npm run lint; npm run build; Pop-Location
 node --check server/src/index.js
+node --check server/src/app.js
 node --check server/src/routes/api.js
 ```
 
@@ -83,3 +94,4 @@ node --check server/src/routes/api.js
 - [Development Guide](docs/DEVELOPMENT.md)
 - [Deployment Guide](docs/DEPLOYMENT.md)
 - [Decisions](docs/DECISIONS.md)
+- [Supabase Setup](docs/SUPABASE.md)

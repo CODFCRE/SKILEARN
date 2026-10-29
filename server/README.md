@@ -26,10 +26,13 @@ The Supabase service role key must never be exposed to the client or committed t
 
 ```text
 src/
-  index.js              Express application and middleware
+  index.js              Environment setup and HTTP listener
+  app.js                Express application and middleware
   config/supabase.js    Supabase client configuration
   middleware/auth.js    Bearer-token authentication
   routes/api.js         API routes
+supabase/
+  schema.sql            Database schema
 ```
 
 ## Current Routes

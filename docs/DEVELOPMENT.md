@@ -51,13 +51,14 @@ Push-Location client; npm run dev; Pop-Location
 ```powershell
 Push-Location client; npm run lint; npm run build; Pop-Location
 node --check server/src/index.js
+node --check server/src/app.js
 node --check server/src/routes/api.js
 ```
 
 ## Working Conventions
 
-- Keep screen-specific React components near their route logic until a shared abstraction is clearly useful.
-- Keep design tokens and responsive rules in `client/src/App.css`.
+- Keep route selection in `client/src/app/App.jsx` and screen UI in `client/src/features/`.
+- Keep shared integrations in `client/src/shared/` and visual rules in `client/src/styles/`.
 - Add loading, empty, and error states when connecting a screen to the API.
 - Keep API route behavior independent from client presentation.
 - Use semantic labels and accessible names for interactive controls.
