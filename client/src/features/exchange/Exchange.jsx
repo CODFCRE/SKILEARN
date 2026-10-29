@@ -3,10 +3,12 @@ import { EmptyState, Header, Icon, Screen } from '../../shared/components.jsx'
 import { navigate } from '../../shared/lib/navigation.js'
 import { supabase } from '../../shared/lib/supabase.js'
 
-export function Exchange() {
+export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('All')
+  const [discoveryMode, setDiscoveryMode] = useState('skills')
   const [skills, setSkills] = useState([])
+  const [people, setPeople] = useState([])
   const [loading, setLoading] = useState(Boolean(supabase))
   const [signedIn, setSignedIn] = useState(false)
   const [loadError, setLoadError] = useState(() => (
@@ -24,6 +26,7 @@ export function Exchange() {
 
       if (!session) {
         setSkills([])
+        setPeople([])
         setLoading(false)
         return
       }
@@ -38,21 +41,24 @@ export function Exchange() {
         if (skillsError) throw skillsError
 
         const ownerIds = [...new Set((skillRows || []).map((skill) => skill.owner_id))]
-        let profilesById = {}
-        if (ownerIds.length) {
-          const { data: profiles, error: profilesError } = await supabase
-            .from('profiles')
-            .select('id,display_name')
-            .in('id', ownerIds)
-
-          if (profilesError) throw profilesError
-          profilesById = Object.fromEntries((profiles || []).map((profile) => [profile.id, profile]))
-        }
+        const [ownersResult, peopleResult] = await Promise.all([
+          ownerIds.length
+            ? supabase.from('profiles').select('id,display_name').in('id', ownerIds)
+            : Promise.resolve({ data: [], error: null }),
+          supabase.from('profiles').select('id,display_name').order('display_name').limit(200),
+        ])
+        if (ownersResult.error) throw ownersResult.error
+        if (peopleResult.error) throw peopleResult.error
+        const profilesById = Object.fromEntries((ownersResult.data || []).map((profile) => [profile.id, profile]))
 
         if (active) {
           setSkills((skillRows || []).map((skill) => ({
             ...skill,
             person: profilesById[skill.owner_id]?.display_name || 'Campus member',
+          })))
+          setPeople((peopleResult.data || []).map((person) => ({
+            ...person,
+            displayName: person.display_name || 'Campus member',
           })))
         }
       } catch (error) {
@@ -101,6 +107,9 @@ export function Exchange() {
       .includes(normalizedQuery)
     return matchesCategory && matchesQuery
   })
+  const filteredPeople = people.filter((person) => (
+    person.displayName.toLowerCase().includes(normalizedQuery)
+  ))
 
   return (
     <Screen active="exchange">
@@ -112,26 +121,56 @@ export function Exchange() {
         )}
       />
       <main className="page exchange-page">
-        <div className="search-wrap">
-          <Icon>search</Icon>
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search available skills..."
-            aria-label="Search available skills"
-          />
-        </div>
-        <div className="filter-row" role="group" aria-label="Skill categories">
-          {exchangeCategories.map((item) => (
+        <div className="exchange-discovery">
+          <div className="search-wrap">
+            <Icon>search</Icon>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={discoveryMode === 'skills' ? 'Search skills or people...' : 'Search people...'}
+              aria-label={discoveryMode === 'skills' ? 'Search skills or people' : 'Search people'}
+            />
+          </div>
+          <div className="discovery-switch" role="tablist" aria-label="Search category">
             <button
-              key={item}
-              className={category === item ? 'filter active' : 'filter'}
-              onClick={() => setCategory(item)}
+              type="button"
+              role="tab"
+              aria-selected={discoveryMode === 'skills'}
+              className={discoveryMode === 'skills' ? 'active' : ''}
+              onClick={() => {
+                setDiscoveryMode('skills')
+                setCategory('All')
+              }}
             >
-              {item}
+              <Icon>school</Icon> Skills
             </button>
-          ))}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={discoveryMode === 'people'}
+              className={discoveryMode === 'people' ? 'active' : ''}
+              onClick={() => {
+                setDiscoveryMode('people')
+                setCategory('All')
+              }}
+            >
+              <Icon>group</Icon> People
+            </button>
+          </div>
         </div>
+        {discoveryMode === 'skills' && (
+          <div className="filter-row" role="group" aria-label="Skill categories">
+            {exchangeCategories.map((item) => (
+              <button
+                key={item}
+                className={category === item ? 'filter active' : 'filter'}
+                onClick={() => setCategory(item)}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        )}
         {loadError && (
           <div className="profile-error" role="alert">
             <span>{loadError}</span>
@@ -145,7 +184,7 @@ export function Exchange() {
             title="Sign in to browse skills"
             text="Log in with your email code to see published campus skill listings."
           />
-        ) : filteredSkills.length ? (
+        ) : discoveryMode === 'skills' && filteredSkills.length ? (
           <div className="skills-grid">
             {filteredSkills.map((skill) => (
               <article
@@ -165,6 +204,11 @@ export function Exchange() {
                 <span className="profile-skill-icon">
                   <Icon>school</Icon>
                 </span>
+                <span
+                  className={`presence-dot ${onlineMemberIds.includes(skill.owner_id) ? 'online' : presenceReady && !presenceError ? 'offline' : 'unknown'}`}
+                  aria-label={presenceError || !presenceReady ? 'Availability unknown' : onlineMemberIds.includes(skill.owner_id) ? 'Online' : 'Offline'}
+                  title={presenceError || !presenceReady ? 'Availability unknown' : onlineMemberIds.includes(skill.owner_id) ? 'Online' : 'Offline'}
+                />
                 <div className="profile-skill-copy">
                   <h3>{skill.title}</h3>
                   <p>{skill.description || skill.category}</p>
@@ -174,13 +218,53 @@ export function Exchange() {
               </article>
             ))}
           </div>
+        ) : discoveryMode === 'people' && filteredPeople.length ? (
+          <div className="people-grid">
+            {filteredPeople.map((person) => {
+              const isOnline = onlineMemberIds.includes(person.id)
+              const availability = presenceError || !presenceReady
+                ? 'Availability unavailable'
+                : isOnline
+                  ? 'Online now'
+                  : 'Offline'
+
+              return (
+                <article className="people-card" key={person.id}>
+                  <span className="people-avatar" aria-hidden="true">
+                    {person.displayName.slice(0, 1).toUpperCase()}
+                  </span>
+                  <div className="people-card-copy">
+                    <strong>{person.displayName}</strong>
+                    <span className="presence-label">
+                      <i className={`presence-dot ${isOnline ? 'online' : presenceReady && !presenceError ? 'offline' : 'unknown'}`} />
+                      {availability}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDiscoveryMode('skills')
+                      setQuery(person.displayName)
+                    }}
+                    aria-label={`View skills offered by ${person.displayName}`}
+                  >
+                    View skills
+                  </button>
+                </article>
+              )
+            })}
+          </div>
         ) : (
           <EmptyState
-            icon="search_off"
-            title={skills.length ? 'No matching skills' : 'No skills available yet'}
-            text={skills.length
-              ? 'Try another search or category.'
-              : 'Published skill listings will appear here when they are available.'}
+            icon={discoveryMode === 'skills' ? 'search_off' : 'person_search'}
+            title={discoveryMode === 'skills'
+              ? skills.length ? 'No matching skills' : 'No skills available yet'
+              : people.length ? 'No matching people' : 'No people found'}
+            text={discoveryMode === 'skills'
+              ? skills.length
+                ? 'Try another search or category.'
+                : 'Published skill listings will appear here when they are available.'
+              : 'Try a different name.'}
           />
         )}
       </main>

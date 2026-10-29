@@ -2642,6 +2642,15 @@ button:disabled {
   }
 }
 
+@media (min-width: 641px) {
+  .bottom-nav {
+    right: auto;
+    left: clamp(16px, 3vw, 48px);
+    width: min(560px, calc(100vw - 32px));
+    margin: 0;
+  }
+}
+
 @media (max-width: 640px) {
   .page {
     padding: 20px 16px;
@@ -4344,4 +4353,296 @@ html[data-theme='dark'] .profile-edit-form button {
 html[data-theme='dark'] .profile-edit-form button[type='submit'] {
   color: #17200f;
   background: #a8c76a;
+}
+
+.exchange-discovery {
+  display: grid;
+  gap: 12px;
+}
+
+.discovery-switch {
+  display: inline-flex;
+  width: fit-content;
+  gap: 4px;
+  padding: 4px;
+  background: #e7ebdf;
+  border: 1px solid #d5dacb;
+  border-radius: 999px;
+}
+
+.discovery-switch button {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px 16px;
+  color: #596052;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.discovery-switch button.active {
+  color: #fff;
+  background: var(--olive);
+  box-shadow: 0 3px 8px rgba(27, 35, 21, 0.16);
+}
+
+.discovery-switch .material-symbols-outlined {
+  font-size: 17px;
+}
+
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+}
+
+.people-card {
+  display: flex;
+  min-width: 0;
+  min-height: 82px;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid #c5c8b655;
+  border-radius: 18px;
+  box-shadow: 0 5px 16px rgba(27, 35, 21, 0.04);
+}
+
+.people-avatar {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  place-items: center;
+  color: #30431a;
+  background: #dce8c8;
+  border: 1px solid #c8d7af;
+  border-radius: 50%;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.people-card-copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 5px;
+}
+
+.people-card-copy > strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.presence-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.presence-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  flex: 0 0 9px;
+  background: #969d8b;
+  border: 1px solid rgba(25, 29, 23, 0.1);
+  border-radius: 50%;
+}
+
+.presence-dot.online {
+  background: #4a9b50;
+  box-shadow: 0 0 0 3px rgba(74, 155, 80, 0.14);
+}
+
+.presence-dot.offline {
+  background: #969d8b;
+}
+
+.presence-dot.unknown {
+  background: #d0a64c;
+}
+
+.people-card > button {
+  min-height: 34px;
+  flex: 0 0 auto;
+  padding: 6px 11px;
+  color: var(--olive);
+  background: #f0f3e9;
+  border: 1px solid #d9e0cd;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.people-card > button:hover {
+  background: #e2e9d5;
+}
+
+.exchange-page .exchange-skill-card {
+  position: relative;
+  padding-right: 38px;
+}
+
+.exchange-page .exchange-skill-card > .presence-dot {
+  position: absolute;
+  top: 18px;
+  right: 16px;
+}
+
+html[data-theme='dark'] .discovery-switch {
+  background: #20291d;
+  border-color: #46523a;
+}
+
+html[data-theme='dark'] .discovery-switch button {
+  color: #c0cbb3;
+}
+
+html[data-theme='dark'] .discovery-switch button.active {
+  color: #17200f;
+  background: #819e4f;
+}
+
+html[data-theme='dark'] .people-card {
+  background: #20291d;
+  border-color: #46523a;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.18);
+}
+
+html[data-theme='dark'] .people-avatar {
+  color: #e5f1d2;
+  background: #394b29;
+  border-color: #536942;
+}
+
+html[data-theme='dark'] .people-card > button {
+  color: #d1ed92;
+  background: #293522;
+  border-color: #46523a;
+}
+
+html[data-theme='dark'] .people-card > button:hover {
+  background: #35432b;
+}
+
+html[data-theme='dark'] .presence-dot {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+@media (min-width: 1024px) {
+  .topbar-inner,
+  .page {
+    max-width: 1480px;
+  }
+
+  .topbar-inner {
+    padding: 20px 48px;
+  }
+
+  .page {
+    padding: 36px 48px;
+  }
+
+  .exchange-page {
+    padding-top: 40px;
+  }
+
+  .exchange-discovery {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .exchange-page .skills-grid,
+  .exchange-page .people-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .exchange-page .filter-row {
+    padding-top: 18px;
+    padding-bottom: 24px;
+  }
+
+  .sessions-page,
+  .detail-page {
+    max-width: 1080px;
+  }
+
+  .wallet-page {
+    max-width: 1384px;
+  }
+
+  .profile-shell .topbar-inner {
+    max-width: 1480px;
+    padding: 20px 48px;
+  }
+
+  .profile-shell .profile-page {
+    width: min(100% - 96px, 860px);
+    padding-top: 36px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .exchange-page .skills-grid,
+  .exchange-page .people-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1920px) {
+  .topbar-inner,
+  .page {
+    max-width: 1680px;
+  }
+
+  .topbar-inner {
+    padding-right: 64px;
+    padding-left: 64px;
+  }
+
+  .page {
+    padding-right: 64px;
+    padding-left: 64px;
+  }
+}
+
+@media (max-width: 640px) {
+  .exchange-discovery {
+    gap: 10px;
+  }
+
+  .discovery-switch {
+    width: 100%;
+  }
+
+  .discovery-switch button {
+    flex: 1;
+  }
+
+  .people-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .people-card {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .people-card > button {
+    padding: 6px 9px;
+  }
 }
