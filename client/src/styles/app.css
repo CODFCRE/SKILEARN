@@ -322,6 +322,45 @@ button:disabled {
   opacity: 0.65;
 }
 
+.google-signin-button {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #23341b;
+  background: #fff;
+  border: 1px solid #dfe5dc;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(35, 52, 27, 0.04);
+  font-size: 13px;
+  font-weight: 700;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.google-signin-button:hover:not(:disabled) {
+  background: #f2f5ec;
+  border-color: #b7c39e;
+}
+
+.google-signin-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.google-signin-mark {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: #4285f4;
+  border: 1px solid #dfe5dc;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 800;
+}
+
 .login-submit .material-symbols-outlined {
   color: #c3e275;
   font-size: 18px;

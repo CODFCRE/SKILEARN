@@ -26,7 +26,7 @@ VITE_SUPABASE_URL
 VITE_SUPABASE_ANON_KEY
 ```
 
-Add the deployed client URL and its `/login`, `/profile`, and `/auth/error` paths to the Supabase Auth URL configuration and OAuth redirect allowlists. OAuth callbacks use `/auth/error` to report failures; successful authentication continues to `/profile`.
+Add the deployed client URL and its `/login`, `/profile`, and `/auth/error` paths to the Supabase Auth URL configuration and OAuth redirect allowlists. Google OAuth uses Supabase Auth's provider callback, then returns to the client at `/auth/error`; successful authentication continues to `/profile`.
 
 ## Google OAuth Setup
 
@@ -35,7 +35,7 @@ Add the deployed client URL and its `/login`, `/profile`, and `/auth/error` path
 3. Create an OAuth client ID for a web application.
 4. In Supabase, open **Authentication -> Providers -> Google** and enable Google.
 5. Copy the Google client ID and client secret into the Supabase Google provider settings.
-6. Copy the Supabase-provided callback URL into the Google OAuth client's authorized redirect URIs. It normally follows this form:
+6. Copy the exact Supabase callback URL shown in the Google provider settings into the Google OAuth client's authorized redirect URIs. It normally follows this form:
 
 ```text
 https://<project-ref>.supabase.co/auth/v1/callback
@@ -49,7 +49,7 @@ http://localhost:5174/
 https://skilearn-tan.vercel.app/
 ```
 
-The client invokes `supabase.auth.signInWithOAuth({ provider: 'google' })` and uses the current application origin as the redirect target. Google secrets belong in Supabase, not in this repository.
+The client invokes `supabase.auth.signInWithOAuth({ provider: 'google' })` and returns to the current application origin at `/auth/error`. Supabase handles the OAuth exchange. Google client secrets belong in Supabase provider settings, not in this repository or client environment.
 
 Do not configure or expose the Supabase service role key in the browser.
 

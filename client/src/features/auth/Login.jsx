@@ -8,6 +8,7 @@ export function Login() {
   const [code, setCode] = useState('')
   const [step, setStep] = useState('email')
   const [loading, setLoading] = useState(false)
+  const [oauthLoading, setOauthLoading] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
@@ -120,6 +121,36 @@ export function Login() {
     setNotice('')
   }
 
+  const handleGoogleSignIn = async () => {
+    setError('')
+    setNotice('')
+
+    if (!supabaseConfigured) {
+      setError('Supabase is not configured. Add the client VITE_SUPABASE variables to continue.')
+      return
+    }
+
+    setOauthLoading(true)
+    try {
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/auth/error` },
+      })
+
+      if (oauthError) {
+        navigate('/auth/error', { authError: { message: oauthError.message } })
+      }
+    } catch (requestError) {
+      navigate('/auth/error', {
+        authError: {
+          message: requestError instanceof Error ? requestError.message : 'Unable to start Google sign-in.',
+        },
+      })
+    } finally {
+      setOauthLoading(false)
+    }
+  }
+
   return (
     <div className="login-screen">
       <main className="login-frame">
@@ -160,9 +191,19 @@ export function Login() {
                     required
                   />
                 </label>
-                <button className="login-submit" type="submit" disabled={loading}>
+                <button className="login-submit" type="submit" disabled={loading || oauthLoading}>
                   {loading ? 'Sending code...' : 'Email me a code'}
                   <Icon>arrow_forward</Icon>
+                </button>
+                <div className="login-divider"><span>Or continue with</span></div>
+                <button
+                  className="google-signin-button"
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={oauthLoading || loading}
+                >
+                  <span className="google-signin-mark" aria-hidden="true">G</span>
+                  {oauthLoading ? 'Connecting to Google...' : 'Continue with Google'}
                 </button>
               </form>
             ) : (
@@ -209,7 +250,7 @@ export function Login() {
           </div>
 
           <footer className="login-signup">
-            <span>Passwordless sign-in with a one-time email code</span>
+            <span>Sign in securely with email or Google</span>
           </footer>
         </section>
       </main>

@@ -21,7 +21,7 @@ VITE_SUPABASE_URL=your-supabase-project-url
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-The login screen is available at `/login` and uses Supabase passwordless email OTP for both new and existing accounts. Configure the Supabase Magic Link and Confirm signup email templates to include `{{ .Token }}` so users can enter the emailed code. Failed authentication opens `/auth/error` with the available reason; tokens are not displayed. The `/profile` route shows the profile UI while signed out and adds the current user's details and account activity after authentication.
+The login screen is available at `/login` and supports Supabase passwordless email OTP and Google OAuth for new and existing accounts. Configure the Supabase Magic Link and Confirm signup email templates to include `{{ .Token }}` so users can enter the emailed code. Enable Google under Supabase Authentication providers and add the app callback URL to the Supabase redirect allowlist. Failed authentication opens `/auth/error` with the available reason; tokens are not displayed. The `/profile` route shows the profile UI while signed out and adds the current user's details and account activity after authentication.
 
 ## Source Structure
 

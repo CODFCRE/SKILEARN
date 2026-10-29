@@ -67,7 +67,7 @@ The app sends a one-time email code with `signInWithOtp` and verifies it with `v
 
 ## 5. Optional Google OAuth URLs
 
-In Google Cloud Console, add this authorized redirect URI:
+In **Authentication -> Providers -> Google**, enable the provider and enter the OAuth client ID and secret for the same Google Cloud **Web application** client. In Google Cloud Console, add the exact Supabase callback URL shown on that provider page as an authorized redirect URI. It normally follows this form:
 
 ```text
 https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback
@@ -82,15 +82,19 @@ Additional redirect URLs:
 http://127.0.0.1:5173/
 http://127.0.0.1:5173/login
 http://127.0.0.1:5173/profile
+http://127.0.0.1:5173/auth/error
 http://localhost:5173/
 http://localhost:5173/login
 http://localhost:5173/profile
+http://localhost:5173/auth/error
 http://127.0.0.1:5174/
 http://127.0.0.1:5174/login
 http://127.0.0.1:5174/profile
+http://127.0.0.1:5174/auth/error
 http://localhost:5174/
 http://localhost:5174/login
 http://localhost:5174/profile
+http://localhost:5174/auth/error
 http://localhost:8080/
 http://localhost:8080/login
 http://localhost:8080/profile
@@ -98,9 +102,10 @@ http://localhost:8080/auth/error
 https://skilearn-tan.vercel.app/
 https://skilearn-tan.vercel.app/login
 https://skilearn-tan.vercel.app/profile
+https://skilearn-tan.vercel.app/auth/error
 ```
 
-The app verifies the emailed code on the login screen and routes successful authentication to `/profile`. `/auth/error` displays errors returned during authentication.
+The browser starts Google sign-in using Supabase Auth's `signInWithOAuth`; Supabase handles the provider callback and returns to `/auth/error`. That route completes session detection, displays callback errors, and redirects successful sign-ins to `/profile`. No Google client secret belongs in the client or Docker environment.
 
 ## 6. Row Level Security
 
