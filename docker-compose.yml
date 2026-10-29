@@ -1,0 +1,23 @@
+services:
+  api:
+    build:
+      context: ./server
+    environment:
+      PORT: "5000"
+      SUPABASE_URL: "${SUPABASE_URL:?Set SUPABASE_URL in the root .env file}"
+      SUPABASE_ANON_KEY: "${SUPABASE_ANON_KEY:?Set SUPABASE_ANON_KEY in the root .env file}"
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+      args:
+        VITE_SUPABASE_URL: "${VITE_SUPABASE_URL:?Set VITE_SUPABASE_URL in the root .env file}"
+        VITE_SUPABASE_ANON_KEY: "${VITE_SUPABASE_ANON_KEY:?Set VITE_SUPABASE_ANON_KEY in the root .env file}"
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+    restart: unless-stopped

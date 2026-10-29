@@ -46,6 +46,16 @@ Start the client in another terminal:
 Push-Location client; npm run dev; Pop-Location
 ```
 
+## Run with Docker
+
+Copy the root `.env.example` to `.env` and set the Supabase URL and anon key for both the browser and API. Start the production containers from the repository root:
+
+```powershell
+docker compose up --build
+```
+
+The client is available at `http://localhost:8080`; Nginx serves the built app and proxies `/api` to the Express container. Stop with `Ctrl+C`, then run `docker compose down` to remove the containers. The browser anon key is compiled into the client bundle and is public by design; never use a Supabase service-role key in the client or Compose build arguments.
+
 ## Validate Changes
 
 ```powershell

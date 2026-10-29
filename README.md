@@ -21,6 +21,16 @@ docs/                     Product and engineering documentation
 vercel.json               Multi-service Vercel deployment configuration
 ```
 
+## Run with Docker
+
+Copy `.env.example` to `.env` and set the Supabase project URL and anon key. Then run:
+
+```powershell
+docker compose up --build
+```
+
+Open the app at `http://localhost:8080`. The client container serves the production Vite build and proxies `/api` requests to the API container. Stop the stack with `Ctrl+C` and remove its containers with `docker compose down`.
+
 ## Quick Start
 
 Install dependencies in each service:
