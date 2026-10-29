@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CampusSkill - Explore &amp; Skill Feed</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary-fixed-variant": "#414939",
+            "on-error-container": "#93000a",
+            "secondary-fixed-dim": "#bcce88",
+            "on-surface-variant": "#45483b",
+            "on-primary-container": "#2b3c00",
+            "secondary-container": "#d8eba1",
+            "primary-fixed": "#d1ed92",
+            "primary-container": "#8fa956",
+            "on-primary-fixed": "#141f00",
+            "on-secondary": "#ffffff",
+            "background": "#f8faf1",
+            "on-surface": "#191d17",
+            "tertiary": "#586150",
+            "primary": "#4f661b",
+            "inverse-on-surface": "#eff2e9",
+            "tertiary-fixed-dim": "#c0cab4",
+            "outline-variant": "#c5c8b6",
+            "on-secondary-container": "#5b6a2f",
+            "inverse-primary": "#b5d179",
+            "on-error": "#ffffff",
+            "secondary": "#55642a",
+            "surface-dim": "#d8dbd3",
+            "on-secondary-fixed-variant": "#3d4c14",
+            "on-background": "#191d17",
+            "on-primary": "#ffffff",
+            "on-tertiary-fixed": "#161e10",
+            "on-secondary-fixed": "#161f00",
+            "primary-fixed-dim": "#b5d179",
+            "surface-tint": "#4f661b",
+            "on-primary-fixed-variant": "#384e01",
+            "error-container": "#ffdad6",
+            "tertiary-fixed": "#dce6d0",
+            "surface": "#f8faf1",
+            "surface-container-high": "#e6e9e0",
+            "surface-variant": "#e0e4db",
+            "secondary-fixed": "#d8eba1",
+            "outline": "#757969",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-highest": "#e0e4db",
+            "inverse-surface": "#2e322c",
+            "tertiary-container": "#99a38f",
+            "on-tertiary-container": "#31392a",
+            "surface-container": "#ecefe6",
+            "surface-bright": "#f8faf1",
+            "surface-container-low": "#f2f5ec",
+            "error": "#ba1a1a",
+            "on-tertiary": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "1rem",
+            "lg": "2rem",
+            "xl": "3rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xl": "32px",
+            "space-sm": "8px",
+            "space-lg": "24px",
+            "gutter": "16px",
+            "space-xs": "4px",
+            "margin": "20px",
+            "space-md": "16px"
+          },
+          "fontFamily": {
+            "label-sm": ["Plus Jakarta Sans"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "body-sm": ["Plus Jakarta Sans"],
+            "label-lg": ["Plus Jakarta Sans"],
+            "headline-md": ["Plus Jakarta Sans"],
+            "headline-sm": ["Plus Jakarta Sans"],
+            "body-md": ["Plus Jakarta Sans"],
+            "body-lg": ["Plus Jakarta Sans"],
+            "label-md": ["Plus Jakarta Sans"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "label-sm": ["10px", { "lineHeight": "14px", "fontWeight": "600" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "600" }],
+            "headline-lg-mobile": ["26px", { "lineHeight": "32px", "fontWeight": "700" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased pb-28">
+<header class="sticky top-0 z-40 bg-surface/90 backdrop-blur-md shadow-sm rounded-b-3xl">
+<div class="flex justify-between items-center w-full px-gutter py-space-md max-w-7xl mx-auto">
+<div class="flex items-center space-x-space-md">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-primary-container flex items-center justify-center ring-4 ring-primary/20 transform -rotate-3">
+<img class="w-full h-full object-cover" data-alt="A smiling university student profile avatar with short brown hair, wearing a casual olive green jacket against a bright neutral campus background, photographed in clean natural light with modern flat minimalist styling." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjlAH06k2N6sjeIaDY5Yb1rmGci6FKjYRPTckG_fYNuao1GJEORtyuIlJPc52y3DgnizlhBq5WLWC6qo3spsdUSIdKD7tb9rwqr6gKs-RCK1dgFdhu46O_m1RnxBLLGj1XKpEEzLsHRiCAd4agYY7YdIPSWbOoJudjcxHISLX0-_z8Rv0RDYufLYezaWgRSOtuIjAOgh_sn15tsj8wokowWCMNZ0R8rEP-G3W-fPm_8xY9FCgJSRKRgA"/>
+</div>
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary tracking-tight">Skilearn</span>
+</div>
+<button class="w-11 h-11 rounded-2xl rounded-tr-sm bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-all duration-200 shadow-sm">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-gutter py-space-md space-y-space-lg">
+<div class="relative transform rotate-0 hover:rotate-0 transition-transform">
+<div class="absolute inset-y-0 left-0 pl-space-lg flex items-center pointer-events-none text-outline">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="w-full pl-12 pr-4 py-3.5 rounded-3xl rounded-br-lg bg-surface-container-low border-2 border-outline-variant text-on-surface placeholder-outline focus:outline-none focus:border-primary transition-all duration-200 font-body-md shadow-sm" placeholder="Search Python, Guitar, Calculus..." type="text"/>
+</div>
+<div class="flex space-x-space-sm overflow-x-auto pb-space-sm scrollbar-none py-1">
+<button class="px-space-lg py-2.5 rounded-full bg-primary text-on-primary font-label-md transition-all duration-200 whitespace-nowrap shadow-md transform -translate-y-0.5">All</button>
+<button class="px-space-lg py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-md hover:bg-surface-variant transition-all duration-200 whitespace-nowrap shadow-sm">Tech</button>
+<button class="px-space-lg py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-md hover:bg-surface-variant transition-all duration-200 whitespace-nowrap shadow-sm">Arts</button>
+<button class="px-space-lg py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-md hover:bg-surface-variant transition-all duration-200 whitespace-nowrap shadow-sm">Academics</button>
+<button class="px-space-lg py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-md hover:bg-surface-variant transition-all duration-200 whitespace-nowrap shadow-sm">Languages</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg pt-space-xs">
+<div class="bg-[#1B2315] text-[#F8FAF1] p-space-lg rounded-[2.5rem] rounded-tr-lg flex flex-col justify-between space-y-space-md shadow-xl border-2 border-primary/30 relative overflow-hidden group hover:scale-[1.01] transition-transform duration-300">
+<div class="absolute -top-12 -right-12 w-28 h-28 bg-primary/10 rounded-full blur-xl pointer-events-none"></div>
+<div class="flex justify-between items-start">
+<div class="flex items-center space-x-space-sm">
+<div class="w-12 h-12 rounded-2xl rounded-tl-sm overflow-hidden bg-surface-variant ring-2 ring-primary-container">
+<img class="w-full h-full object-cover" data-alt="Close up portrait of a confident computer science student mentor smiling warmly, set against a blurred university library background with high contrast lighting and modern flat design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6yb62-VtGlRmhE-rKXDSWSRODS7yqejdXl_E-Q4MDoyXZSvkUGge4trulYpXM7q1MRgtdwT-tyo_ikwpWvIpKhHO6OzUUrob6zNOLW1TCjF0br7t3upPvjiPrW2Wo4OQLl4eALdjwm7tTTZ_GeRTxmWRuLnqDrAFQJ_89zhSNWVObJvj7IlN3Rzn6iJU4Y02jOA-8ifwMdVgYVRVTZYeeaZoFhRiiBJLydo5ApFXQ4_nEksVMbV2E4g"/>
+</div>
+<div>
+<h3 class="font-headline-sm text-surface">Alex Rivera</h3>
+<p class="text-xs text-surface-variant flex items-center space-x-1">
+<span class="material-symbols-outlined text-yellow-400 text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span>4.9 (42 sessions)</span>
+</p>
+</div>
+</div>
+<span class="px-3.5 py-1.5 rounded-full bg-primary-container text-on-primary-container font-label-sm shadow-sm rotate-1">2 Credits/hr</span>
+</div>
+<div>
+<span class="text-xs uppercase tracking-wider text-primary-fixed-dim font-label-sm px-2 py-0.5 rounded-md bg-primary/20 inline-block mb-1">Tech</span>
+<h2 class="font-headline-md text-surface mt-1">Full-Stack Python &amp; FastAPI Mentorship</h2>
+<p class="text-body-sm text-surface-variant mt-2 line-clamp-2">Learn modern backend architecture, REST APIs, and database integration with hands-on live coding.</p>
+</div>
+<div class="pt-space-sm flex items-center justify-between border-t border-surface-variant/10">
+<span class="text-xs text-surface-variant font-medium">Available Today</span>
+<button class="px-space-md py-2.5 rounded-2xl rounded-br-sm bg-primary-fixed text-on-primary-fixed font-label-md hover:bg-primary-fixed-dim transition-all duration-200 shadow-md">Book Session</button>
+</div>
+</div>
+<div class="bg-[#1B2315] text-[#F8FAF1] p-space-lg rounded-[2.5rem] rounded-tl-lg flex flex-col justify-between space-y-space-md shadow-xl border-2 border-primary/30 relative overflow-hidden group hover:scale-[1.01] transition-transform duration-300">
+<div class="absolute -top-12 -right-12 w-28 h-28 bg-primary/10 rounded-full blur-xl pointer-events-none"></div>
+<div class="flex justify-between items-start">
+<div class="flex items-center space-x-space-sm">
+<div class="w-12 h-12 rounded-2xl rounded-tr-sm overflow-hidden bg-surface-variant ring-2 ring-primary-container">
+<img class="w-full h-full object-cover" data-alt="Portrait of an artistic female university student holding an acoustic guitar, smiling joyfully in a sunlit art studio with warm organic tones and high-contrast layering." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSP0pg4NPOHa8MzXoOTK9xLpcxCB0sVktAZ77g9jRAfaR71LsJwgBnLg2F36sI2Iyl_0-szOqC5uhHAIhVyVXMkmvuMBkGRIls2QiXTXJN_ejxCgxosISCj6SaOw80bjs_Q5WCcwOGeNyxfejOHEiEO0fdwtUnR4DjDSSP5-9lBIU0A4WCD6je8lD0BwOBwTbH4Oavc4SEo3vclxzmYZSnySoG43alPmKxuGf2I-tgwfx2zQmvbvgooA"/>
+</div>
+<div>
+<h3 class="font-headline-sm text-surface">Elena Rostova</h3>
+<p class="text-xs text-surface-variant flex items-center space-x-1">
+<span class="material-symbols-outlined text-yellow-400 text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span>5.0 (28 sessions)</span>
+</p>
+</div>
+</div>
+<span class="px-3.5 py-1.5 rounded-full bg-primary-container text-on-primary-container font-label-sm shadow-sm -rotate-1">1.5 Credits/hr</span>
+</div>
+<div>
+<span class="text-xs uppercase tracking-wider text-primary-fixed-dim font-label-sm px-2 py-0.5 rounded-md bg-primary/20 inline-block mb-1">Arts</span>
+<h2 class="font-headline-md text-surface mt-1">Acoustic Fingerstyle &amp; Music Theory</h2>
+<p class="text-body-sm text-surface-variant mt-2 line-clamp-2">Master fingerpicking patterns, chord progressions, and read sheet music effortlessly.</p>
+</div>
+<div class="pt-space-sm flex items-center justify-between border-t border-surface-variant/10">
+<span class="text-xs text-surface-variant font-medium">Tomorrow</span>
+<button class="px-space-md py-2.5 rounded-2xl rounded-br-sm bg-primary-fixed text-on-primary-fixed font-label-md hover:bg-primary-fixed-dim transition-all duration-200 shadow-md">Book Session</button>
+</div>
+</div>
+<div class="bg-[#1B2315] text-[#F8FAF1] p-space-lg rounded-[2.5rem] rounded-bl-lg flex flex-col justify-between space-y-space-md shadow-xl border-2 border-primary/30 relative overflow-hidden group hover:scale-[1.01] transition-transform duration-300">
+<div class="absolute -top-12 -right-12 w-28 h-28 bg-primary/10 rounded-full blur-xl pointer-events-none"></div>
+<div class="flex justify-between items-start">
+<div class="flex items-center space-x-space-sm">
+<div class="w-12 h-12 rounded-2xl rounded-br-sm overflow-hidden bg-surface-variant ring-2 ring-primary-container">
+<img class="w-full h-full object-cover" data-alt="Portrait of a focused mathematics major student standing in front of a blackboard covered in calculus equations, wearing smart casual attire." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0919bZHFbbvv-NfJHKYN-FqKi7gRslMozbyZMbBDC6dPNXiYA3IuJxee_y1bR0gvGA8EUJzcwX_rHNh12EMqsZCjN286wSJzdbmf2GMXhgauTC8s3W5zjVS8N-7nr-QFDYWbAmxg8i92nt8NVsYzQjkxK8nFIAJr8n4GmoWL6dVlzHdmhJe2YrM3XTNeL3QrTgc4M_YViF-wwOB5YbyKrbuGOR0x7JLfYPubbWiMQ6cPOZmw_iZ5jWQ"/>
+</div>
+<div>
+<h3 class="font-headline-sm text-surface">Marcus Chen</h3>
+<p class="text-xs text-surface-variant flex items-center space-x-1">
+<span class="material-symbols-outlined text-yellow-400 text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span>4.8 (64 sessions)</span>
+</p>
+</div>
+</div>
+<span class="px-3.5 py-1.5 rounded-full bg-primary-container text-on-primary-container font-label-sm shadow-sm rotate-1">2 Credits/hr</span>
+</div>
+<div>
+<span class="text-xs uppercase tracking-wider text-primary-fixed-dim font-label-sm px-2 py-0.5 rounded-md bg-primary/20 inline-block mb-1">Academics</span>
+<h2 class="font-headline-md text-surface mt-1">Advanced Calculus &amp; Linear Algebra</h2>
+<p class="text-body-sm text-surface-variant mt-2 line-clamp-2">Break down complex multi-variable calculus problems and matrix transformations with clear steps.</p>
+</div>
+<div class="pt-space-sm flex items-center justify-between border-t border-surface-variant/10">
+<span class="text-xs text-surface-variant font-medium">Available Today</span>
+<button class="px-space-md py-2.5 rounded-2xl rounded-br-sm bg-primary-fixed text-on-primary-fixed font-label-md hover:bg-primary-fixed-dim transition-all duration-200 shadow-md">Book Session</button>
+</div>
+</div>
+<div class="bg-[#1B2315] text-[#F8FAF1] p-space-lg rounded-[2.5rem] rounded-tr-lg flex flex-col justify-between space-y-space-md shadow-xl border-2 border-primary/30 relative overflow-hidden group hover:scale-[1.01] transition-transform duration-300">
+<div class="absolute -top-12 -right-12 w-28 h-28 bg-primary/10 rounded-full blur-xl pointer-events-none"></div>
+<div class="flex justify-between items-start">
+<div class="flex items-center space-x-space-sm">
+<div class="w-12 h-12 rounded-2xl rounded-tl-sm overflow-hidden bg-surface-variant ring-2 ring-primary-container">
+<img class="w-full h-full object-cover" data-alt="Portrait of a friendly bilingual linguistics exchange student smiling warmly in a bright modern campus cafeteria." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLxxSWTvAf92Ib_Y7tRzm36QkuX3W2mMNSnDTIGCZ1DwbV1ozBf2PfaCQXr_g9vGprxOUL3y5TAX179pfddK3gx6O9QkfTztr-J8qdxMJ-GfJJHth-He2h0b0i1BsBw0KDeP-TUKMuFWxR8NsKwPhaPq0Bvklqr6vyNfpOoQL8ue9XF03bQ5_jbI5NswBG379-iQAVo86JjurCk9F2cy1s_A3BaJbMKU-tTas6TpiHRS8agvDnX4fNiA"/>
+</div>
+<div>
+<h3 class="font-headline-sm text-surface">Sofia Gomez</h3>
+<p class="text-xs text-surface-variant flex items-center space-x-1">
+<span class="material-symbols-outlined text-yellow-400 text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span>4.9 (35 sessions)</span>
+</p>
+</div>
+</div>
+<span class="px-3.5 py-1.5 rounded-full bg-primary-container text-on-primary-container font-label-sm shadow-sm -rotate-1">1 Credit/hr</span>
+</div>
+<div>
+<span class="text-xs uppercase tracking-wider text-primary-fixed-dim font-label-sm px-2 py-0.5 rounded-md bg-primary/20 inline-block mb-1">Languages</span>
+<h2 class="font-headline-md text-surface mt-1">Conversational Spanish &amp; Idioms</h2>
+<p class="text-body-sm text-surface-variant mt-2 line-clamp-2">Immersive conversation practice focusing on natural phrasing, slang, and professional fluency.</p>
+</div>
+<div class="pt-space-sm flex items-center justify-between border-t border-surface-variant/10">
+<span class="text-xs text-surface-variant font-medium">Available Today</span>
+<button class="px-space-md py-2.5 rounded-2xl rounded-br-sm bg-primary-fixed text-on-primary-fixed font-label-md hover:bg-primary-fixed-dim transition-all duration-200 shadow-md">Book Session</button>
+</div>
+</div>
+</div>
+</main>
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter py-space-sm shadow-2xl dark:shadow-none bg-surface-container-low/95 backdrop-blur-md dark:bg-inverse-surface rounded-t-[2.5rem] border-t border-surface-variant/20">
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-2xl rounded-tr-sm px-space-md py-space-sm transition-all duration-200 shadow-sm transform -translate-y-1" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">swap_horiz</span>
+<span class="font-label-sm text-label-sm mt-1">Exchange</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-space-md py-space-sm hover:bg-surface-container dark:hover:bg-surface transition-all duration-200 rounded-2xl" href="#">
+<span class="material-symbols-outlined">event</span>
+<span class="font-label-sm text-label-sm mt-1">Sessions</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-space-md py-space-sm hover:bg-surface-container dark:hover:bg-surface transition-all duration-200 rounded-2xl" href="#">
+<span class="material-symbols-outlined">monetization_on</span>
+<span class="font-label-sm text-label-sm mt-1">Credits</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant px-space-md py-space-sm hover:bg-surface-container dark:hover:bg-surface transition-all duration-200 rounded-2xl" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm mt-1">Profile</span>
+</a>
+</nav>
+</body></html>
