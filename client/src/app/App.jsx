@@ -7,6 +7,7 @@ import { SkillDetail } from '../features/skills/SkillDetail.jsx'
 import { SkillListing } from '../features/skills/SkillListing.jsx'
 import { Verification } from '../features/verification/Verification.jsx'
 import { Chat } from '../features/chat/Chat.jsx'
+import { DirectMessage } from '../features/chat/DirectMessage.jsx'
 import { Profile } from '../features/profile/Profile.jsx'
 import { Login } from '../features/auth/Login.jsx'
 import { AuthError } from '../features/auth/AuthError.jsx'
@@ -186,6 +187,7 @@ function App() {
   if (path === '/skill-listing') return <SkillListing />
   if (path === '/verification') return <Verification />
   if (path === '/chat') return <Chat />
+  if (path === '/messages') return <DirectMessage />
   if (path === '/call') {
     return (
       <Suspense fallback={<main className="call-state">Opening call...</main>}>

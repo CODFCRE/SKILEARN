@@ -231,6 +231,26 @@ create table if not exists public.session_messages (
 create index if not exists session_messages_session_idx
   on public.session_messages (session_id, sent_at);
 
+create table if not exists public.direct_message_threads (
+  id uuid primary key default gen_random_uuid(),
+  user_one uuid not null references auth.users(id) on delete cascade,
+  user_two uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default timezone('utc', now()),
+  check (user_one < user_two),
+  unique (user_one, user_two)
+);
+
+create table if not exists public.direct_messages (
+  id uuid primary key default gen_random_uuid(),
+  thread_id uuid not null references public.direct_message_threads(id) on delete cascade,
+  sender_id uuid not null references auth.users(id) on delete cascade,
+  body text not null check (char_length(trim(body)) between 1 and 5000),
+  sent_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists direct_messages_thread_idx
+  on public.direct_messages (thread_id, sent_at);
+
 drop trigger if exists sessions_set_updated_at on public.sessions;
 create trigger sessions_set_updated_at
   before update on public.sessions
@@ -521,6 +541,8 @@ alter table public.skills enable row level security;
 alter table public.skill_availability enable row level security;
 alter table public.sessions enable row level security;
 alter table public.session_messages enable row level security;
+alter table public.direct_message_threads enable row level security;
+alter table public.direct_messages enable row level security;
 alter table public.call_sessions enable row level security;
 alter table public.credit_ledger enable row level security;
 alter table public.session_ratings enable row level security;
@@ -541,6 +563,10 @@ drop policy if exists "Learners request sessions" on public.sessions;
 drop policy if exists "Session participants update sessions" on public.sessions;
 drop policy if exists "Session participants view messages" on public.session_messages;
 drop policy if exists "Session participants send messages" on public.session_messages;
+drop policy if exists "Participants view direct message threads" on public.direct_message_threads;
+drop policy if exists "Participants create direct message threads" on public.direct_message_threads;
+drop policy if exists "Participants view direct messages" on public.direct_messages;
+drop policy if exists "Participants send direct messages" on public.direct_messages;
 drop policy if exists "Call participants view their calls" on public.call_sessions;
 drop policy if exists "Users start calls" on public.call_sessions;
 drop policy if exists "Call participants update call status" on public.call_sessions;
@@ -597,6 +623,34 @@ create policy "Session participants send messages"
     sender_id = auth.uid()
     and exists (select 1 from public.sessions where sessions.id = session_messages.session_id and (sessions.mentor_id = auth.uid() or sessions.learner_id = auth.uid()))
   );
+
+create policy "Participants view direct message threads"
+  on public.direct_message_threads for select to authenticated
+  using (auth.uid() in (user_one, user_two));
+create policy "Participants create direct message threads"
+  on public.direct_message_threads for insert to authenticated
+  with check (auth.uid() in (user_one, user_two) and user_one <> user_two);
+create policy "Participants view direct messages"
+  on public.direct_messages for select to authenticated using (
+    exists (
+      select 1
+      from public.direct_message_threads
+      where direct_message_threads.id = direct_messages.thread_id
+        and auth.uid() in (direct_message_threads.user_one, direct_message_threads.user_two)
+    )
+  );
+create policy "Participants send direct messages"
+  on public.direct_messages for insert to authenticated with check (
+    sender_id = auth.uid()
+    and exists (
+      select 1
+      from public.direct_message_threads
+      where direct_message_threads.id = direct_messages.thread_id
+        and auth.uid() in (direct_message_threads.user_one, direct_message_threads.user_two)
+    )
+  );
+grant select, insert on public.direct_message_threads to authenticated;
+grant select, insert on public.direct_messages to authenticated;
 
 create policy "Call participants view their calls"
   on public.call_sessions for select to authenticated

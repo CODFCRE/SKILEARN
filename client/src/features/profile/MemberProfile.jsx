@@ -92,11 +92,29 @@ export function MemberProfile() {
     }
   }
 
+  const openMessages = () => {
+    if (!userId || !member) return
+    navigate('/messages', { memberId: member.id })
+  }
+
   const displayName = member?.display_name || 'Campus member'
 
   return (
     <Screen active="exchange" className="member-profile-shell">
-      <Header back />
+      <Header
+        back
+        rightAction={userId && userId !== member?.id && (
+          <button
+            className="member-call-request"
+            type="button"
+            onClick={startCall}
+            disabled={startingCall || !member}
+          >
+            <Icon>videocam</Icon>
+            {startingCall ? 'Requesting...' : 'Request video call'}
+          </button>
+        )}
+      />
       <main className="profile-page member-profile-page">
         {loading ? (
           <div className="profile-loading" role="status">Loading profile...</div>
@@ -120,11 +138,10 @@ export function MemberProfile() {
                       <button
                         className="button primary-action"
                         type="button"
-                        onClick={startCall}
-                        disabled={startingCall}
+                        onClick={openMessages}
                       >
-                        <Icon>videocam</Icon>
-                        {startingCall ? 'Calling...' : 'Video call'}
+                        <Icon>chat</Icon>
+                        Message
                       </button>
                     )}
                   </div>
