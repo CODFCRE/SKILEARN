@@ -236,11 +236,11 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
                   role="link"
                   tabIndex={0}
                   aria-label={`View ${person.displayName}'s profile`}
-                  onClick={() => navigate('/member-profile', { memberId: person.id })}
+                  onClick={() => navigate(`/member-profile?memberId=${encodeURIComponent(person.id)}`, { memberId: person.id })}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault()
-                      navigate('/member-profile', { memberId: person.id })
+                      navigate(`/member-profile?memberId=${encodeURIComponent(person.id)}`, { memberId: person.id })
                     }
                   }}
                 >

@@ -25,6 +25,8 @@ Location: `client/`
 - `client/src/shared/lib/` contains navigation and service integrations.
 - `client/src/styles/` contains global and application styles.
 - Client-side routing currently uses the History API and `popstate`.
+- Feature routes include member profiles (`/member-profile`), direct messages (`/messages`), and WebRTC calls (`/call`).
+- The browser uses Supabase Auth and the anon key for user-scoped data, protected by RLS. Realtime Presence and call signaling use Supabase Realtime.
 
 ### Server
 
@@ -71,7 +73,9 @@ sequenceDiagram
 
 ## Boundaries
 
-- The client owns presentation, input state, navigation, and optimistic interaction only.
-- The server owns authentication, authorization, validation, credit mutations, and persistence.
-- Supabase credentials remain server configuration. The browser must not receive the service role key.
+- The client owns presentation, input state, navigation, and user-scoped Supabase requests.
+- Supabase RLS and database functions enforce authorization and data invariants for direct client access. The Express API owns the authorization and validation for its `/api/*` endpoints.
+- Supabase service-role credentials remain server-only. The browser may receive the project URL and anon key; it must never receive a service-role key.
 - Any future client-to-service URL should use a public `/api` path or a declared Vercel binding, never a hardcoded localhost or deployment hostname.
+
+See [Member Profiles, Messaging, and Calls](features/member-profiles-messaging-calls.md) for the communication feature flows, policies, and verification steps.

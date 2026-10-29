@@ -10,7 +10,6 @@ export function MemberProfile() {
   const [skills, setSkills] = useState([])
   const [userId, setUserId] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [startingCall, setStartingCall] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -69,52 +68,16 @@ export function MemberProfile() {
     }
   }, [memberId])
 
-  const startCall = async () => {
-    if (!supabase || !member || !userId || startingCall) return
-    setStartingCall(true)
-    setError('')
-    try {
-      const { data, error: callError } = await supabase
-        .from('call_sessions')
-        .insert({ caller_id: userId, recipient_id: member.id, status: 'ringing' })
-        .select('id')
-        .single()
-      if (callError) throw callError
-      navigate(`/call?callId=${encodeURIComponent(data.id)}`, {
-        callId: data.id,
-        direction: 'outgoing',
-      })
-    } catch (requestError) {
-      console.error('Unable to start call:', requestError)
-      setError(requestError instanceof Error ? requestError.message : 'Unable to start this call.')
-    } finally {
-      setStartingCall(false)
-    }
-  }
-
   const openMessages = () => {
     if (!userId || !member) return
-    navigate('/messages', { memberId: member.id })
+    navigate(`/messages?memberId=${encodeURIComponent(member.id)}`, { memberId: member.id })
   }
 
   const displayName = member?.display_name || 'Campus member'
 
   return (
     <Screen active="exchange" className="member-profile-shell">
-      <Header
-        back
-        rightAction={userId && userId !== member?.id && (
-          <button
-            className="member-call-request"
-            type="button"
-            onClick={startCall}
-            disabled={startingCall || !member}
-          >
-            <Icon>videocam</Icon>
-            {startingCall ? 'Requesting...' : 'Request video call'}
-          </button>
-        )}
-      />
+      <Header back />
       <main className="profile-page member-profile-page">
         {loading ? (
           <div className="profile-loading" role="status">Loading profile...</div>

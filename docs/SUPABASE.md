@@ -2,7 +2,7 @@
 
 This document describes the database, authentication, storage, and environment setup for Skilearn.
 
-The executable schema is [server/supabase/schema.sql](../server/supabase/schema.sql). Run it in the Supabase SQL Editor for a new project. For an existing project, run the [credit settlement migration](../server/supabase/migrations/20261029_session_credit_settlement.sql), the [public profiles and WebRTC calls migration](../server/supabase/migrations/20261029_public_profiles_webrtc_calls.sql), and the [direct messages migration](../server/supabase/migrations/20261029_direct_messages.sql) in the Supabase SQL Editor.
+The executable schema is [server/supabase/schema.sql](../server/supabase/schema.sql). Run it in the Supabase SQL Editor for a new project. For an existing project, run the [credit settlement migration](../server/supabase/migrations/20261029_session_credit_settlement.sql), the [public profiles and WebRTC calls migration](../server/supabase/migrations/20261029_public_profiles_webrtc_calls.sql), and the [direct messages migration](../server/supabase/migrations/20261029_direct_messages.sql) in the Supabase SQL Editor. The member-profile, messaging, and call routes and their verification steps are documented in [the feature guide](features/member-profiles-messaging-calls.md).
 
 ## 1. Create a Supabase Project
 
@@ -116,7 +116,7 @@ The schema enables RLS on every application table.
 - Published skills are visible to authenticated users.
 - Users can create and edit only their own skills and availability.
 - Session data and chat messages are visible only to participants.
-- Call invitations and private Realtime signaling are restricted to the two call participants.
+- Call invitations and private Realtime signaling are restricted to the two call participants. Call status transitions and participant IDs are guarded by a database trigger.
 - Direct message threads and messages are readable and writable only by their participants.
 - Credit ledger rows are read-only to the owning user.
 - Verification submissions are private to the submitting user.

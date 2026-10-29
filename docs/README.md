@@ -9,5 +9,6 @@
 | [Deployment](DEPLOYMENT.md) | Vercel services, environment variables, and release checks |
 | [Decisions](DECISIONS.md) | Important implementation decisions and tradeoffs |
 | [Supabase](SUPABASE.md) | SQL schema, Auth, storage, RLS, and page data mapping |
+| [Member profiles, messaging, and calls](features/member-profiles-messaging-calls.md) | UI flows, code ownership, database migrations, and manual verification |
 
 Update the relevant document whenever a public route, service boundary, data contract, or development command changes.

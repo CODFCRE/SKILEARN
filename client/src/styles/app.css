@@ -2640,6 +2640,24 @@ button:disabled {
   .skills-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .direct-message-header-actions {
+    gap: 5px;
+  }
+
+  .direct-message-header-actions .member-call-request {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0;
+    overflow: hidden;
+    font-size: 0;
+  }
+
+  .direct-message-header-actions .member-call-request .material-symbols-outlined {
+    font-size: 20px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -5300,6 +5318,12 @@ html[data-theme='dark'] .member-skill-card:hover {
 
 .member-call-request .material-symbols-outlined {
   font-size: 18px;
+}
+
+.direct-message-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .direct-message-shell {

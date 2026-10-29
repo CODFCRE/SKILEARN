@@ -14,6 +14,55 @@ create index if not exists call_sessions_incoming_idx
   on public.call_sessions (recipient_id, created_at desc)
   where status = 'ringing';
 
+create or replace function public.guard_call_session_update()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $$
+begin
+  if new.caller_id is distinct from old.caller_id
+    or new.recipient_id is distinct from old.recipient_id
+    or new.created_at is distinct from old.created_at then
+    raise exception 'Call participants and creation time cannot be changed.';
+  end if;
+
+  if new.status is not distinct from old.status then
+    return new;
+  end if;
+
+  if new.status in ('accepted', 'declined') then
+    if old.status <> 'ringing' or auth.uid() is distinct from old.recipient_id then
+      raise exception 'Only the recipient can answer or decline a ringing call.';
+    end if;
+  elsif new.status = 'ended' then
+    if old.status not in ('ringing', 'accepted')
+      or (
+        auth.uid() is distinct from old.caller_id
+        and auth.uid() is distinct from old.recipient_id
+      ) then
+      raise exception 'Only a call participant can end an active call.';
+    end if;
+  elsif new.status = 'missed' then
+    if old.status <> 'ringing'
+      or (
+        auth.uid() is distinct from old.caller_id
+        and auth.uid() is distinct from old.recipient_id
+      ) then
+      raise exception 'Only a call participant can expire an unanswered call.';
+    end if;
+  else
+    raise exception 'Invalid call status transition.';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists call_sessions_guard_update on public.call_sessions;
+create trigger call_sessions_guard_update
+  before update on public.call_sessions
+  for each row execute procedure public.guard_call_session_update();
+
 alter table public.call_sessions enable row level security;
 
 drop policy if exists "Call participants view their calls" on public.call_sessions;

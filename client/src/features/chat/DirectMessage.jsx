@@ -9,6 +9,14 @@ function orderedParticipants(firstId, secondId) {
     : { user_one: secondId, user_two: firstId }
 }
 
+function mergeMessages(current, incoming) {
+  const messagesById = new Map(current.map((item) => [item.id, item]))
+  incoming.forEach((item) => messagesById.set(item.id, item))
+  return [...messagesById.values()].sort(
+    (first, second) => new Date(first.sent_at).getTime() - new Date(second.sent_at).getTime(),
+  )
+}
+
 export function DirectMessage() {
   const memberId = window.history.state?.memberId
     || new URLSearchParams(window.location.search).get('memberId')
@@ -19,6 +27,7 @@ export function DirectMessage() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [requestingCall, setRequestingCall] = useState(false)
   const [error, setError] = useState('')
   const streamRef = useRef(null)
 
@@ -117,7 +126,7 @@ export function DirectMessage() {
           .eq('thread_id', thread.id)
           .order('sent_at', { ascending: true })
         if (messagesError) throw messagesError
-        if (active) setMessages(data || [])
+        if (active) setMessages((current) => mergeMessages(current, data || []))
       } catch (requestError) {
         console.error('Unable to refresh direct messages:', requestError)
         if (active) setError(requestError instanceof Error ? requestError.message : 'Unable to refresh messages.')
@@ -150,15 +159,36 @@ export function DirectMessage() {
         .select('id,sender_id,body,sent_at')
         .single()
       if (sendError) throw sendError
-      setMessages((current) => (
-        current.some((item) => item.id === data.id) ? current : [...current, data]
-      ))
+      setMessages((current) => mergeMessages(current, [data]))
       setMessage('')
     } catch (requestError) {
       console.error('Unable to send direct message:', requestError)
       setError(requestError instanceof Error ? requestError.message : 'Unable to send your message.')
     } finally {
       setSending(false)
+    }
+  }
+
+  const requestVideoCall = async () => {
+    if (!supabase || !userId || !memberId || requestingCall) return
+    setRequestingCall(true)
+    setError('')
+    try {
+      const { data, error: callError } = await supabase
+        .from('call_sessions')
+        .insert({ caller_id: userId, recipient_id: memberId, status: 'ringing' })
+        .select('id')
+        .single()
+      if (callError) throw callError
+      navigate(`/call?callId=${encodeURIComponent(data.id)}`, {
+        callId: data.id,
+        direction: 'outgoing',
+      })
+    } catch (requestError) {
+      console.error('Unable to request video call:', requestError)
+      setError(requestError instanceof Error ? requestError.message : 'Unable to request a video call.')
+    } finally {
+      setRequestingCall(false)
     }
   }
 
@@ -188,14 +218,27 @@ export function DirectMessage() {
             <span>Direct message</span>
           </div>
         </div>
-        <button
-          className="round-control direct-message-profile"
-          type="button"
-          onClick={() => navigate('/member-profile', { memberId })}
-          aria-label={`View ${peerName}'s profile`}
-        >
-          <Icon>person</Icon>
-        </button>
+        <div className="direct-message-header-actions">
+          <button
+            className="member-call-request"
+            type="button"
+            onClick={requestVideoCall}
+            disabled={requestingCall}
+            aria-label="Request video call"
+            title="Request video call"
+          >
+            <Icon>videocam</Icon>
+            {requestingCall ? 'Requesting...' : 'Request video call'}
+          </button>
+          <button
+            className="round-control direct-message-profile"
+            type="button"
+            onClick={() => navigate(`/member-profile?memberId=${encodeURIComponent(memberId)}`, { memberId })}
+            aria-label={`View ${peerName}'s profile`}
+          >
+            <Icon>person</Icon>
+          </button>
+        </div>
       </header>
 
       <main className="chat-stream direct-message-stream" ref={streamRef}>

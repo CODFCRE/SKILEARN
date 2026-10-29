@@ -5,19 +5,19 @@ Skilearn is a peer-to-peer skill exchange application. Users can discover skills
 ## Repository Layout
 
 ```text
-docs/                    Product and engineering documentation
-client/                  React + Vite application
-	src/app/               Application entry and route switch
-	src/features/          Feature-owned screens
-	src/shared/            Reusable UI and client integrations
-	src/styles/            Global and application styles
-server/                  Express API and Supabase integration
-	src/app.js             Express app configuration
-	src/config/            Service configuration
-	src/middleware/        Request middleware
-	src/routes/             API route modules
-	supabase/               Database schema
 docs/                     Product and engineering documentation
+  features/               Feature guides and operational workflows
+client/                   React + Vite application
+  src/app/                 Application entry and route switch
+  src/features/            Feature-owned screens
+  src/shared/              Reusable UI and client integrations
+  src/styles/              Global and application styles
+server/                   Express API and Supabase integration
+  src/app.js               Express app configuration
+  src/config/              Service configuration
+  src/middleware/          Request middleware
+  src/routes/              API route modules
+  supabase/                Database schema and migrations
 vercel.json               Multi-service Vercel deployment configuration
 ```
 
@@ -85,7 +85,10 @@ Never commit `.env` files, private keys, or service-account credentials.
 | `/skill-listing` | Offer a new skill |
 | `/verification` | Campus verification and onboarding |
 | `/chat` | Mentorship chat and session completion |
-| `/login` | Supabase email/password and OAuth login |
+| `/member-profile?memberId=<uuid>` | Public member profile and published skills |
+| `/messages?memberId=<uuid>` | Private direct conversation |
+| `/call?callId=<uuid>` | WebRTC call screen |
+| `/login` | Supabase email OTP and optional Google OAuth |
 
 ## Quality Checks
 
@@ -105,3 +108,4 @@ node --check server/src/routes/api.js
 - [Deployment Guide](docs/DEPLOYMENT.md)
 - [Decisions](docs/DECISIONS.md)
 - [Supabase Setup](docs/SUPABASE.md)
+- [Member Profiles, Messaging, and Calls](docs/features/member-profiles-messaging-calls.md)
