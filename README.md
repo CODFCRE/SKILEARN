@@ -12,6 +12,7 @@ client/                   React + Vite application
   src/features/            Feature-owned screens
   src/shared/              Reusable UI and client integrations
   src/styles/              Global and application styles
+skillrean-android/        React Native Android application (Expo)
 server/                   Express API and Supabase integration
   src/app.js               Express app configuration
   src/config/              Service configuration
@@ -53,6 +54,10 @@ Push-Location server; npm run dev; Pop-Location
 ```
 
 The client uses Vite. The API listens on port `5000` by default.
+
+## Android App
+
+The independent React Native app is in [skillrean-android/](skillrean-android/README.md). Copy `skillrean-android/.env.example` to `skillrean-android/.env`, add the public Supabase URL and anon key, then run `npm install` and `npm run android` from that folder.
 
 ## Environment
 

@@ -5,6 +5,7 @@
 ```mermaid
 flowchart LR
     Browser[Web Browser] --> Client[React + Vite Client]
+    Android[Android App - React Native and Expo] --> Supabase[(Supabase Database and Storage)]
     Client -->|/api/*| Server[Express API]
     Server --> Supabase[(Supabase Database and Storage)]
     Client --> Fonts[Google Fonts]
@@ -77,5 +78,14 @@ sequenceDiagram
 - Supabase RLS and database functions enforce authorization and data invariants for direct client access. The Express API owns the authorization and validation for its `/api/*` endpoints.
 - Supabase service-role credentials remain server-only. The browser may receive the project URL and anon key; it must never receive a service-role key.
 - Any future client-to-service URL should use a public `/api` path or a declared Vercel binding, never a hardcoded localhost or deployment hostname.
+
+### Android app
+
+Location: `skillrean-android/`
+
+- The Expo application embeds a single-file build of `client/`, so the Android UI, navigation, and Supabase requests use the same implementation as the web client.
+- Android builds the web bundle from `client/.env` (`VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`); the app must never include a service-role key.
+- Google sign-in returns to the app through `skilearn://auth/error`; this redirect must be allowlisted in Supabase Auth.
+- Android Gradle builds regenerate and embed the web bundle before packaging the React Native application.
 
 See [Member Profiles, Messaging, and Calls](features/member-profiles-messaging-calls.md) for the communication feature flows, policies, and verification steps.

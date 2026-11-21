@@ -44,21 +44,46 @@ export function AuthError() {
   useEffect(() => {
     let active = true
     const hasCallbackParameters = Boolean(window.location.search || window.location.hash)
+    const query = new URLSearchParams(window.location.search)
+    const hash = new URLSearchParams(window.location.hash.slice(1))
+    const callbackCode = query.get('code') || hash.get('code')
+    const accessToken = hash.get('access_token')
+    const refreshToken = hash.get('refresh_token')
     const { data: authListener } = supabase?.auth.onAuthStateChange((_event, session) => {
       if (active && session && !details) navigate('/profile')
     }) ?? { data: { subscription: { unsubscribe() {} } } }
 
     if (supabase) {
-      supabase.auth.getSession().then(({ data, error }) => {
+      supabase.auth.getSession().then(async ({ data, error }) => {
         if (!active) return
+        if (error) throw error
+        let session = data.session
+        if (!session && callbackCode) {
+          const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(callbackCode)
+          if (exchangeError) throw exchangeError
+          session = exchangeData.session
+        } else if (!session && accessToken && refreshToken) {
+          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+          if (sessionError) throw sessionError
+          session = sessionData.session
+        }
+
         if (hasCallbackParameters) clearCallbackParameters()
-        if (data.session && !details) {
+        if (session && !details) {
           navigate('/profile')
-        } else if (error && !details) {
-          setDetails({ message: error.message })
+        } else if (!details) {
+          setDetails({
+            message: hasCallbackParameters
+              ? 'The sign-in callback returned without creating a session. Check the Supabase Auth redirect configuration and logs.'
+              : 'No active sign-in session was found. Please sign in again.',
+          })
         }
       }).catch((error) => {
         if (active && !details) {
+          if (hasCallbackParameters) clearCallbackParameters()
           setDetails({
             message: error instanceof Error
               ? error.message

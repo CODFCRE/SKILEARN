@@ -204,13 +204,14 @@ export function Call() {
           setError(signalError instanceof Error ? signalError.message : 'Unable to connect this call.')
         }
       })
-      .subscribe((status) => {
+      .subscribe((status, realtimeError) => {
         if (!active) return
         if (status === 'SUBSCRIBED') {
           setChannelReady(true)
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           setChannelReady(false)
-          setError('Unable to connect to call signaling. Check the Supabase call migration and try again.')
+          const reason = realtimeError instanceof Error ? ` ${realtimeError.message}` : ''
+          setError(`Unable to connect to call signaling.${reason} Check the Supabase call migration and try again.`)
         }
       })
 
@@ -307,7 +308,9 @@ export function Call() {
       }
       const reportSignalError = (signalError) => {
         console.error('Unable to notify the other participant:', signalError)
-        setError('Unable to reach the other participant. Please try again.')
+        setError(signalError instanceof Error
+          ? `Call signaling failed: ${signalError.message}`
+          : 'Unable to reach the other participant. Please try again.')
       }
       const notifyPeer = () => {
         void sendReady().catch(reportSignalError)

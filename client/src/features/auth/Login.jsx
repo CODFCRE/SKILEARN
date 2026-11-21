@@ -3,6 +3,8 @@ import { supabase, supabaseConfigured } from '../../shared/lib/supabase.js'
 import { Icon } from '../../shared/components.jsx'
 import { navigate } from '../../shared/lib/navigation.js'
 
+const authRedirectUrl = import.meta.env.VITE_AUTH_REDIRECT_URL || `${window.location.origin}/auth/error`
+
 export function Login() {
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
@@ -132,13 +134,23 @@ export function Login() {
 
     setOauthLoading(true)
     try {
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      const isNativeApp = Boolean(window.ReactNativeWebView && authRedirectUrl.startsWith('skilearn://'))
+      const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}/auth/error` },
+        options: {
+          redirectTo: authRedirectUrl,
+          skipBrowserRedirect: isNativeApp,
+        },
       })
 
       if (oauthError) {
         navigate('/auth/error', { authError: { message: oauthError.message } })
+      } else if (isNativeApp) {
+        if (data.url) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'open-auth-url', url: data.url }))
+        } else {
+          setError('Google sign-in did not return a sign-in URL. Please try again.')
+        }
       }
     } catch (requestError) {
       navigate('/auth/error', {

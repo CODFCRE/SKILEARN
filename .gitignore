@@ -3,5 +3,14 @@ node_modules/
 **/.env.*
 !**/.env.example
 client/dist/
+client/dist-android/
+skillrean-android/dist/
+skillrean-android/src/web/generatedWebApp.js
+skillrean-android/android/.gradle/
+skillrean-android/android/local.properties
+skillrean-android/android/build/
+skillrean-android/android/app/build/
+skillrean-android/android/.cxx/
+skillrean-android/android/app/.cxx/
 server/coverage/
 npm-debug.log*

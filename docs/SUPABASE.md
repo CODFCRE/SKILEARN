@@ -81,6 +81,7 @@ In Supabase **Authentication -> URL Configuration**, set:
 Site URL: https://skilearn-tan.vercel.app/
 
 Additional redirect URLs:
+skilearn://auth/error
 http://127.0.0.1:5173/
 http://127.0.0.1:5173/login
 http://127.0.0.1:5173/profile
@@ -107,7 +108,7 @@ https://skilearn-tan.vercel.app/profile
 https://skilearn-tan.vercel.app/auth/error
 ```
 
-The browser starts Google sign-in using Supabase Auth's `signInWithOAuth`; Supabase handles the provider callback and returns to `/auth/error`. That route completes session detection, displays callback errors, and redirects successful sign-ins to `/profile`. No Google client secret belongs in the client or Docker environment.
+The web app starts Google sign-in using Supabase Auth's `signInWithOAuth`; Supabase handles the provider callback and returns to `/auth/error`. The Android app uses `skilearn://auth/error` to return from the external browser. Keep the Supabase Site URL set to the production web URL; an unallowlisted redirect falls back to Site URL. That route completes session detection, displays callback errors, and redirects successful sign-ins to `/profile`. No Google client secret belongs in the client or Docker environment.
 
 ## 6. Row Level Security
 
