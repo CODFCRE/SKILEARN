@@ -980,6 +980,252 @@ button:disabled {
   margin: 0;
 }
 
+.skill-media-upload {
+  position: relative;
+  display: grid;
+  height: 220px;
+  overflow: hidden;
+  place-items: center;
+  background: #17200f;
+  border: 1px dashed #d1ed9299;
+  border-radius: 18px;
+  cursor: pointer;
+}
+
+.skill-media-upload img,
+.skill-media-upload video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.skill-media-upload input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.skill-media-upload-placeholder {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  color: #eff5df;
+  text-align: center;
+}
+
+.skill-media-upload-placeholder .material-symbols-outlined {
+  font-size: 38px;
+  color: var(--lime);
+}
+
+.skill-media-upload-placeholder small {
+  color: #b4c39d;
+}
+
+.skills-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 18px;
+}
+
+.skill-feed-card {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  color: var(--ink);
+  background: white;
+  border: 1px solid #c5c8b666;
+  border-radius: 20px;
+  box-shadow: 0 10px 28px rgba(27, 35, 21, 0.07);
+  cursor: pointer;
+  text-align: left;
+}
+
+.skill-feed-media {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: #dfe8c8;
+}
+
+.skill-feed-media img,
+.skill-feed-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.skill-feed-placeholder {
+  display: grid;
+  height: 100%;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  color: var(--olive);
+  background:
+    radial-gradient(circle at 20% 20%, #d8eba1 0 12%, transparent 32%),
+    linear-gradient(135deg, #edf2df, #cbd8ac);
+}
+
+.skill-feed-placeholder .material-symbols-outlined {
+  font-size: 54px;
+}
+
+.skill-feed-category {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 6px 9px;
+  color: white;
+  background: rgba(27, 35, 21, 0.78);
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  backdrop-filter: blur(8px);
+}
+
+.skill-feed-copy {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+}
+
+.skill-feed-copy h3,
+.skill-feed-copy p {
+  margin: 0;
+}
+
+.skill-feed-copy h3 {
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.skill-feed-copy p {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.skill-feed-copy footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.skill-feed-copy footer span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.skill-feed-copy footer strong {
+  color: var(--olive);
+  font-size: 12px;
+}
+
+.profile-shell .profile-skills-list,
+.member-profile-page .profile-skills-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.profile-skill-grid-card {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #dfe8c8;
+  border: 0;
+  border-radius: 12px;
+}
+
+.profile-skill-grid-card > img,
+.profile-skill-grid-card > video,
+.profile-skill-grid-media,
+.profile-skill-grid-media img,
+.profile-skill-grid-media video,
+.profile-skill-grid-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.profile-skill-grid-media {
+  display: block;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+}
+
+.profile-skill-grid-card img,
+.profile-skill-grid-card video,
+.profile-skill-grid-media img,
+.profile-skill-grid-media video {
+  object-fit: cover;
+}
+
+.profile-skill-grid-placeholder {
+  display: grid;
+  place-items: center;
+  color: var(--olive);
+  background: linear-gradient(135deg, #edf2df, #cbd8ac);
+}
+
+.profile-skill-grid-placeholder .material-symbols-outlined {
+  font-size: 38px;
+}
+
+.profile-skill-grid-copy {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  gap: 2px;
+  padding: 26px 8px 7px;
+  color: white;
+  background: linear-gradient(transparent, rgba(20, 28, 16, 0.82));
+  pointer-events: none;
+}
+
+.profile-skill-grid-copy strong,
+.profile-skill-grid-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-skill-grid-copy strong {
+  font-size: 10px;
+}
+
+.profile-skill-grid-copy span {
+  font-size: 9px;
+}
+
+.profile-skill-grid-delete {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 3;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  color: white;
+  background: rgba(127, 45, 38, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+}
+
 /* --------------------------------------------------------------------------
    Sessions and wallet screens
    -------------------------------------------------------------------------- */

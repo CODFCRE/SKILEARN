@@ -35,7 +35,7 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
       try {
         const { data: skillRows, error: skillsError } = await supabase
           .from('skills')
-          .select('id,owner_id,title,description,category,credit_rate,session_format,created_at')
+          .select('id,owner_id,title,description,category,credit_rate,session_format,media_path,media_type,created_at')
           .eq('status', 'published')
           .order('created_at', { ascending: false })
 
@@ -53,10 +53,21 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
         const profilesById = Object.fromEntries((ownersResult.data || []).map((profile) => [profile.id, profile]))
 
         if (active) {
-          setSkills((skillRows || []).map((skill) => ({
+          const skillsWithMedia = await Promise.all((skillRows || []).map(async (skill) => {
+            let mediaUrl = ''
+            if (skill.media_path) {
+              const { data: media } = await supabase.storage
+                .from('files')
+                .createSignedUrl(skill.media_path, 3600)
+              mediaUrl = media?.signedUrl || ''
+            }
+            return {
             ...skill,
             person: profilesById[skill.owner_id]?.display_name || 'Campus member',
-          })))
+            mediaUrl,
+            }
+          }))
+          setSkills(skillsWithMedia)
           setPeople((peopleResult.data || []).map((person) => ({
             ...person,
             displayName: person.display_name || 'Campus member',
@@ -189,7 +200,7 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
           <div className="skills-grid">
             {filteredSkills.map((skill) => (
               <SpotlightCard
-                className="profile-skill-card exchange-skill-card"
+                className="skill-feed-card exchange-skill-card"
                 key={skill.id}
                 onClick={() => navigate('/skill-detail', { skillId: skill.id })}
                 onKeyDown={(event) => {
@@ -202,20 +213,32 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
                 tabIndex={0}
                 aria-label={`View ${skill.title}`}
               >
-                <span className="profile-skill-icon">
-                  <Icon>school</Icon>
-                </span>
+                <div className="skill-feed-media">
+                  {skill.mediaUrl && skill.media_type === 'video'
+                    ? <video src={skill.mediaUrl} muted loop playsInline preload="metadata" />
+                    : skill.mediaUrl
+                      ? <img src={skill.mediaUrl} alt={`${skill.title} skill`} />
+                      : (
+                        <div className="skill-feed-placeholder">
+                          <Icon>school</Icon>
+                          <span>{skill.category}</span>
+                        </div>
+                      )}
+                  <span className="skill-feed-category">{skill.category}</span>
+                </div>
                 <span
                   className={`presence-dot ${onlineMemberIds.includes(skill.owner_id) ? 'online' : presenceReady && !presenceError ? 'offline' : 'unknown'}`}
                   aria-label={presenceError || !presenceReady ? 'Availability unknown' : onlineMemberIds.includes(skill.owner_id) ? 'Online' : 'Offline'}
                   title={presenceError || !presenceReady ? 'Availability unknown' : onlineMemberIds.includes(skill.owner_id) ? 'Online' : 'Offline'}
                 />
-                <div className="profile-skill-copy">
+                <div className="skill-feed-copy">
                   <h3>{skill.title}</h3>
                   <p>{skill.description || skill.category}</p>
-                  <span>{skill.category} · {skill.person}</span>
+                  <footer>
+                    <span><Icon>person</Icon>{skill.person}</span>
+                    <strong>{Number(skill.credit_rate).toFixed(2)} Cr/hr</strong>
+                  </footer>
                 </div>
-                <strong>{Number(skill.credit_rate).toFixed(2)} Cr/hr</strong>
               </SpotlightCard>
             ))}
           </div>

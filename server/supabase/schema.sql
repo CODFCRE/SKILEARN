@@ -98,6 +98,8 @@ create table if not exists public.skills (
   description text,
   category text not null,
   credit_rate numeric(6, 2) not null check (credit_rate > 0),
+  media_path text,
+  media_type text check (media_type in ('image', 'video')),
   session_format text not null default 'online'
     check (session_format in ('online', 'in_person', 'both')),
   status text not null default 'draft'
@@ -754,6 +756,7 @@ drop policy if exists "Users upload their own files" on storage.objects;
 drop policy if exists "Users view their own files" on storage.objects;
 drop policy if exists "Users delete their own files" on storage.objects;
 drop policy if exists "Signed-in users can view active profile photos" on storage.objects;
+drop policy if exists "Published skill media is visible to signed-in users" on storage.objects;
 drop policy if exists "Direct message participants can view attachments" on storage.objects;
 
 create policy "Users upload their own files"
@@ -774,6 +777,17 @@ create policy "Signed-in users can view active profile photos"
       from public.profiles
       where profiles.avatar_path = storage.objects.name
         or profiles.banner_path = storage.objects.name
+    )
+  );
+create policy "Published skill media is visible to signed-in users"
+  on storage.objects for select to authenticated
+  using (
+    bucket_id = 'files'
+    and exists (
+      select 1
+      from public.skills
+      where skills.media_path = storage.objects.name
+        and skills.status = 'published'
     )
   );
 create policy "Direct message participants can view attachments"

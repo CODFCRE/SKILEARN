@@ -18,6 +18,8 @@ export function SkillListing() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [savedSkillId, setSavedSkillId] = useState(null)
+  const [mediaFile, setMediaFile] = useState(null)
+  const [mediaPreview, setMediaPreview] = useState('')
 
   useEffect(() => {
     let active = true
@@ -102,6 +104,22 @@ export function SkillListing() {
         if (skillError) throw skillError
         skillId = skill.id
         setSavedSkillId(skillId)
+      }
+
+      if (mediaFile) {
+        const mediaType = mediaFile.type.startsWith('video/') ? 'video' : 'image'
+        const extension = mediaFile.name.split('.').pop()?.toLowerCase() || (mediaType === 'video' ? 'mp4' : 'jpg')
+        const mediaPath = `${userData.user.id}/skill-listings/${skillId}/${crypto.randomUUID()}.${extension}`
+        const { error: mediaUploadError } = await supabase.storage
+          .from('files')
+          .upload(mediaPath, mediaFile, { upsert: false, contentType: mediaFile.type })
+        if (mediaUploadError) throw mediaUploadError
+        const { error: mediaUpdateError } = await supabase
+          .from('skills')
+          .update({ media_path: mediaPath, media_type: mediaType })
+          .eq('id', skillId)
+          .eq('owner_id', userData.user.id)
+        if (mediaUpdateError) throw mediaUpdateError
       }
 
       if (activeDays.length) {
@@ -191,6 +209,54 @@ export function SkillListing() {
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Describe your experience and what learners can expect."
             />
+
+            <div className="field-group">
+              <div className="field-label">
+                <span>Listing Photo or Video</span>
+                <small>Add a cover for your Instagram-style skill post</small>
+              </div>
+              <label className="skill-media-upload">
+                {mediaPreview ? (
+                  mediaFile?.type.startsWith('video/') ? (
+                    <video src={mediaPreview} muted loop controls />
+                  ) : (
+                    <img src={mediaPreview} alt="Skill listing preview" />
+                  )
+                ) : (
+                  <span className="skill-media-upload-placeholder">
+                    <Icon>add_a_photo</Icon>
+                    <strong>Add photo or video</strong>
+                    <small>JPG, PNG, WebP or MP4, WebM, MOV</small>
+                  </span>
+                )}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0]
+                    event.target.value = ''
+                    if (!file) return
+                    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+                      setError('Choose an image or video for your skill listing.')
+                      return
+                    }
+                    if (file.size > (file.type.startsWith('video/') ? 50 : 8) * 1024 * 1024) {
+                      setError(file.type.startsWith('video/')
+                        ? 'Choose a video smaller than 50 MB.'
+                        : 'Choose an image smaller than 8 MB.')
+                      return
+                    }
+                    setError('')
+                    setMediaFile(file)
+                    setMediaPreview((current) => {
+                      if (current) URL.revokeObjectURL(current)
+                      return URL.createObjectURL(file)
+                    })
+                  }}
+                  disabled={published || saving}
+                />
+              </label>
+            </div>
 
             <div className="field-group">
               <div className="field-label">

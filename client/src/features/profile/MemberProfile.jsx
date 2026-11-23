@@ -30,7 +30,7 @@ export function MemberProfile() {
             .eq('id', memberId)
             .maybeSingle(),
           supabase.from('skills')
-            .select('id,title,description,category,credit_rate')
+            .select('id,title,description,category,credit_rate,media_path,media_type')
             .eq('owner_id', memberId)
             .eq('status', 'published')
             .order('created_at', { ascending: false }),
@@ -57,10 +57,22 @@ export function MemberProfile() {
           bannerUrl = banner.signedUrl
         }
 
+        const skillsWithMedia = await Promise.all((skillsResult.data || []).map(async (skill) => {
+          let mediaUrl = ''
+          if (skill.media_path) {
+            const { data: media, error: mediaError } = await supabase.storage
+              .from('files')
+              .createSignedUrl(skill.media_path, 3600)
+            if (mediaError) throw mediaError
+            mediaUrl = media?.signedUrl || ''
+          }
+          return { ...skill, mediaUrl }
+        }))
+
         if (active) {
           setUserId(authData.user?.id || null)
           setMember({ ...profileResult.data, avatarUrl, bannerUrl })
-          setSkills(skillsResult.data || [])
+          setSkills(skillsWithMedia)
         }
       } catch (requestError) {
         console.error('Unable to load member profile:', requestError)
@@ -151,7 +163,7 @@ export function MemberProfile() {
                 <div className="profile-skills-list">
                   {skills.map((skill) => (
                     <article
-                      className="profile-skill-card member-skill-card"
+                      className="profile-skill-grid-card member-skill-card"
                       key={skill.id}
                       role="link"
                       tabIndex={0}
@@ -163,13 +175,15 @@ export function MemberProfile() {
                         }
                       }}
                     >
-                      <span className="profile-skill-icon"><Icon>school</Icon></span>
-                      <span className="profile-skill-copy">
-                        <h3>{skill.title}</h3>
-                        <p>{skill.description || skill.category}</p>
-                        <span>{skill.category}</span>
-                      </span>
-                      <strong>{Number(skill.credit_rate).toFixed(2)} Cr/hr</strong>
+                      {skill.mediaUrl && skill.media_type === 'video'
+                        ? <video src={skill.mediaUrl} muted loop playsInline preload="metadata" />
+                        : skill.mediaUrl
+                          ? <img src={skill.mediaUrl} alt={skill.title} />
+                          : <span className="profile-skill-grid-placeholder"><Icon>school</Icon></span>}
+                      <div className="profile-skill-grid-copy">
+                        <strong>{skill.title}</strong>
+                        <span>{Number(skill.credit_rate).toFixed(2)} Cr/hr</span>
+                      </div>
                     </article>
                   ))}
                 </div>
