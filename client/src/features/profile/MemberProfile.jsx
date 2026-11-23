@@ -70,7 +70,7 @@ export function MemberProfile() {
 
   const openMessages = () => {
     if (!userId || !member) return
-    navigate(`/messages?memberId=${encodeURIComponent(member.id)}`, { memberId: member.id })
+    navigate(`/direct-message?memberId=${encodeURIComponent(member.id)}`, { memberId: member.id })
   }
 
   const displayName = member?.display_name || 'Campus member'

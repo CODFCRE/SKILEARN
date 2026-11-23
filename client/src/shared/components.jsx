@@ -6,6 +6,7 @@ import { supabase } from './lib/supabase.js'
 const navigationItems = [
   ['exchange', 'swap_horiz', 'Exchange'],
   ['sessions', 'event', 'Sessions'],
+  ['messages', 'forum', 'Messages'],
   ['wallet', 'monetization_on', 'Credits'],
   ['profile', 'person', 'Profile'],
 ]

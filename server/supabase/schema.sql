@@ -160,6 +160,8 @@ create table if not exists public.call_sessions (
   recipient_id uuid not null references auth.users(id) on delete cascade,
   status text not null default 'ringing'
     check (status in ('ringing', 'accepted', 'declined', 'ended', 'missed')),
+  call_type text not null default 'video'
+    check (call_type in ('video', 'phone')),
   created_at timestamptz not null default timezone('utc', now()),
   check (caller_id <> recipient_id)
 );
@@ -294,6 +296,13 @@ create table if not exists public.direct_messages (
   thread_id uuid not null references public.direct_message_threads(id) on delete cascade,
   sender_id uuid not null references auth.users(id) on delete cascade,
   body text not null check (char_length(trim(body)) between 1 and 5000),
+  message_type text not null default 'text'
+    check (message_type in ('text', 'image', 'voice', 'file')),
+  attachment_path text,
+  attachment_name text,
+  attachment_mime text,
+  attachment_size bigint,
+  voice_duration_seconds integer,
   sent_at timestamptz not null default timezone('utc', now())
 );
 
@@ -741,6 +750,7 @@ drop policy if exists "Users upload their own files" on storage.objects;
 drop policy if exists "Users view their own files" on storage.objects;
 drop policy if exists "Users delete their own files" on storage.objects;
 drop policy if exists "Signed-in users can view active profile photos" on storage.objects;
+drop policy if exists "Direct message participants can view attachments" on storage.objects;
 
 create policy "Users upload their own files"
   on storage.objects for insert to authenticated with check (
@@ -759,6 +769,19 @@ create policy "Signed-in users can view active profile photos"
       select 1
       from public.profiles
       where profiles.avatar_path = storage.objects.name
+    )
+  );
+create policy "Direct message participants can view attachments"
+  on storage.objects for select to authenticated
+  using (
+    bucket_id = 'files'
+    and exists (
+      select 1
+      from public.direct_messages
+      join public.direct_message_threads
+        on direct_message_threads.id = direct_messages.thread_id
+      where direct_messages.attachment_path = storage.objects.name
+        and auth.uid() in (direct_message_threads.user_one, direct_message_threads.user_two)
     )
   );
 create policy "Users delete their own files"

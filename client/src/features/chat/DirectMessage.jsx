@@ -28,8 +28,30 @@ export function DirectMessage() {
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [requestingCall, setRequestingCall] = useState(false)
+  const [recording, setRecording] = useState(false)
+  const [uploadingAttachment, setUploadingAttachment] = useState(false)
   const [error, setError] = useState('')
   const streamRef = useRef(null)
+  const imageInputRef = useRef(null)
+  const fileInputRef = useRef(null)
+  const recorderRef = useRef(null)
+  const recorderChunksRef = useRef([])
+  const recordingStartedRef = useRef(0)
+
+  const hydrateAttachments = async (rows) => {
+    if (!supabase) return rows
+    return Promise.all((rows || []).map(async (item) => {
+      if (!item.attachment_path) return item
+      const { data, error: signedUrlError } = await supabase.storage
+        .from('files')
+        .createSignedUrl(item.attachment_path, 3600)
+      if (signedUrlError) {
+        console.error('Unable to create attachment URL:', signedUrlError)
+        return item
+      }
+      return { ...item, attachmentUrl: data?.signedUrl || '' }
+    }))
+  }
 
   useEffect(() => {
     let active = true
@@ -86,7 +108,7 @@ export function DirectMessage() {
 
         const { data: messageRows, error: messagesError } = await supabase
           .from('direct_messages')
-          .select('id,sender_id,body,sent_at')
+          .select('id,sender_id,body,sent_at,message_type,attachment_path,attachment_name,attachment_mime,attachment_size,voice_duration_seconds')
           .eq('thread_id', threadData.id)
           .order('sent_at', { ascending: true })
         if (messagesError) throw messagesError
@@ -95,7 +117,7 @@ export function DirectMessage() {
           setUserId(authData.user.id)
           setPeerName(peerResult.data.display_name || 'Campus member')
           setThread(threadData)
-          setMessages(messageRows || [])
+          setMessages(await hydrateAttachments(messageRows || []))
         }
       } catch (requestError) {
         console.error('Unable to open direct messages:', requestError)
@@ -122,11 +144,14 @@ export function DirectMessage() {
       try {
         const { data, error: messagesError } = await supabase
           .from('direct_messages')
-          .select('id,sender_id,body,sent_at')
+          .select('id,sender_id,body,sent_at,message_type,attachment_path,attachment_name,attachment_mime,attachment_size,voice_duration_seconds')
           .eq('thread_id', thread.id)
           .order('sent_at', { ascending: true })
         if (messagesError) throw messagesError
-        if (active) setMessages((current) => mergeMessages(current, data || []))
+        if (active) {
+          const hydrated = await hydrateAttachments(data || [])
+          setMessages((current) => mergeMessages(current, hydrated))
+        }
       } catch (requestError) {
         console.error('Unable to refresh direct messages:', requestError)
         if (active) setError(requestError instanceof Error ? requestError.message : 'Unable to refresh messages.')
@@ -156,7 +181,7 @@ export function DirectMessage() {
       const { data, error: sendError } = await supabase
         .from('direct_messages')
         .insert({ thread_id: thread.id, sender_id: userId, body })
-        .select('id,sender_id,body,sent_at')
+        .select('id,sender_id,body,sent_at,message_type,attachment_path,attachment_name,attachment_mime,attachment_size,voice_duration_seconds')
         .single()
       if (sendError) throw sendError
       setMessages((current) => mergeMessages(current, [data]))
@@ -169,26 +194,100 @@ export function DirectMessage() {
     }
   }
 
-  const requestVideoCall = async () => {
+  const requestCall = async (callType) => {
     if (!supabase || !userId || !memberId || requestingCall) return
     setRequestingCall(true)
     setError('')
     try {
       const { data, error: callError } = await supabase
         .from('call_sessions')
-        .insert({ caller_id: userId, recipient_id: memberId, status: 'ringing' })
+        .insert({ caller_id: userId, recipient_id: memberId, status: 'ringing', call_type: callType })
         .select('id')
         .single()
       if (callError) throw callError
       navigate(`/call?callId=${encodeURIComponent(data.id)}`, {
         callId: data.id,
         direction: 'outgoing',
+        callType,
       })
     } catch (requestError) {
       console.error('Unable to request video call:', requestError)
       setError(requestError instanceof Error ? requestError.message : 'Unable to request a video call.')
     } finally {
       setRequestingCall(false)
+    }
+  }
+
+  const uploadAttachment = async (file, messageType) => {
+    if (!file || !supabase || !thread || !userId || uploadingAttachment) return
+    setUploadingAttachment(true)
+    setError('')
+    try {
+      const extension = file.name?.split('.').pop()?.toLowerCase() || 'bin'
+      const path = `${userId}/direct-messages/${thread.id}/${crypto.randomUUID()}.${extension}`
+      const { error: uploadError } = await supabase.storage
+        .from('files')
+        .upload(path, file, { upsert: false, contentType: file.type })
+      if (uploadError) throw uploadError
+
+      const body = messageType === 'image' ? 'Photo' : messageType === 'voice' ? 'Voice note' : file.name
+      const { data, error: sendError } = await supabase
+        .from('direct_messages')
+        .insert({
+          thread_id: thread.id,
+          sender_id: userId,
+          body,
+          message_type: messageType,
+          attachment_path: path,
+          attachment_name: file.name,
+          attachment_mime: file.type,
+          attachment_size: file.size,
+          voice_duration_seconds: messageType === 'voice'
+            ? Math.max(1, Math.round((Date.now() - recordingStartedRef.current) / 1000))
+            : null,
+        })
+        .select('id,sender_id,body,sent_at,message_type,attachment_path,attachment_name,attachment_mime,attachment_size,voice_duration_seconds')
+        .single()
+      if (sendError) throw sendError
+      const hydrated = await hydrateAttachments([data])
+      setMessages((current) => mergeMessages(current, hydrated))
+    } catch (requestError) {
+      console.error('Unable to share attachment:', requestError)
+      setError(requestError instanceof Error ? requestError.message : 'Unable to share this attachment.')
+    } finally {
+      setUploadingAttachment(false)
+    }
+  }
+
+  const toggleVoiceRecording = async () => {
+    if (recording) {
+      recorderRef.current?.stop()
+      setRecording(false)
+      return
+    }
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+      setError('Voice recording is not supported in this browser.')
+      return
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const recorder = new window.MediaRecorder(stream)
+      recorderChunksRef.current = []
+      recorder.ondataavailable = (event) => {
+        if (event.data.size) recorderChunksRef.current.push(event.data)
+      }
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop())
+        const blob = new Blob(recorderChunksRef.current, { type: recorder.mimeType || 'audio/webm' })
+        await uploadAttachment(new File([blob], `voice-note-${Date.now()}.webm`, { type: blob.type }), 'voice')
+      }
+      recordingStartedRef.current = Date.now()
+      recorder.start()
+      recorderRef.current = recorder
+      setRecording(true)
+    } catch (requestError) {
+      console.error('Unable to start voice recording:', requestError)
+      setError(requestError instanceof Error ? requestError.message : 'Unable to start voice recording.')
     }
   }
 
@@ -222,7 +321,18 @@ export function DirectMessage() {
           <button
             className="member-call-request"
             type="button"
-            onClick={requestVideoCall}
+            onClick={() => requestCall('phone')}
+            disabled={requestingCall}
+            aria-label="Request phone call"
+            title="Request phone call"
+          >
+            <Icon>call</Icon>
+            {requestingCall ? 'Requesting...' : 'Phone call'}
+          </button>
+          <button
+            className="member-call-request"
+            type="button"
+            onClick={() => requestCall('video')}
             disabled={requestingCall}
             aria-label="Request video call"
             title="Request video call"
@@ -247,7 +357,27 @@ export function DirectMessage() {
           const mine = item.sender_id === userId
           return (
             <div className={mine ? 'outgoing-bubble user-message' : 'incoming-bubble'} key={item.id}>
-              <p>{item.body}</p>
+              {item.message_type === 'image' && item.attachmentUrl ? (
+                <a className="direct-message-image" href={item.attachmentUrl} target="_blank" rel="noreferrer">
+                  <img src={item.attachmentUrl} alt={item.attachment_name || 'Shared photo'} />
+                </a>
+              ) : item.message_type === 'voice' && item.attachmentUrl ? (
+                <div className="direct-message-voice">
+                  <Icon>graphic_eq</Icon>
+                  <audio controls src={item.attachmentUrl} preload="metadata" />
+                </div>
+              ) : item.message_type === 'file' && item.attachmentUrl ? (
+                <a className="direct-message-file" href={item.attachmentUrl} target="_blank" rel="noreferrer">
+                  <Icon>description</Icon>
+                  <span>
+                    <strong>{item.attachment_name || 'Shared file'}</strong>
+                    <small>{item.attachment_size ? `${Math.ceil(item.attachment_size / 1024)} KB` : 'Open file'}</small>
+                  </span>
+                  <Icon>download</Icon>
+                </a>
+              ) : (
+                <p>{item.body}</p>
+              )}
               <small>{new Date(item.sent_at).toLocaleString()}</small>
             </div>
           )
@@ -263,6 +393,24 @@ export function DirectMessage() {
       <form className="chat-composer" onSubmit={sendMessage}>
         <div className="composer-row">
           <div>
+            <button
+              type="button"
+              onClick={() => imageInputRef.current?.click()}
+              disabled={uploadingAttachment}
+              aria-label="Share photo"
+              title="Share photo"
+            >
+              <Icon>photo</Icon>
+            </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingAttachment}
+              aria-label="Share file"
+              title="Share file"
+            >
+              <Icon>attach_file</Icon>
+            </button>
             <input
               value={message}
               onChange={(event) => setMessage(event.target.value)}
@@ -270,11 +418,43 @@ export function DirectMessage() {
               aria-label="Message"
               maxLength={5000}
             />
+            <button
+              type="button"
+              className={recording ? 'recording' : ''}
+              onClick={toggleVoiceRecording}
+              disabled={uploadingAttachment}
+              aria-label={recording ? 'Stop recording voice note' : 'Record voice note'}
+              title={recording ? 'Stop recording' : 'Record voice note'}
+            >
+              <Icon>{recording ? 'stop_circle' : 'mic'}</Icon>
+            </button>
           </div>
           <button className="send-button" type="submit" disabled={sending || !message.trim()} aria-label="Send message">
             <Icon>send</Icon>
           </button>
         </div>
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(event) => {
+            const file = event.target.files?.[0]
+            event.target.value = ''
+            if (file) void uploadAttachment(file, 'image')
+          }}
+        />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar"
+          hidden
+          onChange={(event) => {
+            const file = event.target.files?.[0]
+            event.target.value = ''
+            if (file) void uploadAttachment(file, 'file')
+          }}
+        />
       </form>
     </div>
   )

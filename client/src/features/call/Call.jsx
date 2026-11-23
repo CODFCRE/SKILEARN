@@ -50,7 +50,7 @@ export function Call() {
 
         const { data: callData, error: callError } = await supabase
           .from('call_sessions')
-          .select('id,caller_id,recipient_id,status,created_at')
+          .select('id,caller_id,recipient_id,status,call_type,created_at')
           .eq('id', callId)
           .maybeSingle()
         if (callError) throw callError
@@ -113,7 +113,8 @@ export function Call() {
       if (!navigator.mediaDevices?.getUserMedia) {
         throw new Error('Camera and microphone access is not available in this browser.')
       }
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+      const isPhoneCall = call?.call_type === 'phone'
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: !isPhoneCall })
       localStreamRef.current = stream
       if (active) setLocalStream(stream)
       return stream
@@ -290,7 +291,8 @@ export function Call() {
       if (!navigator.mediaDevices?.getUserMedia) {
         throw new Error('Camera and microphone access is not available in this browser.')
       }
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+      const isPhoneCall = call?.call_type === 'phone'
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: !isPhoneCall })
       localStreamRef.current = stream
       setLocalStream(stream)
       callerStartedRef.current = true
@@ -333,7 +335,8 @@ export function Call() {
       if (!navigator.mediaDevices?.getUserMedia) {
         throw new Error('Camera and microphone access is not available in this browser.')
       }
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+      const isPhoneCall = call?.call_type === 'phone'
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: !isPhoneCall })
       localStreamRef.current = stream
       setLocalStream(stream)
       const { data, error: acceptError } = await supabase
@@ -428,9 +431,10 @@ export function Call() {
   }
 
   const finished = ['declined', 'ended', 'missed', 'failed', 'unavailable'].includes(callStatus)
+  const isPhoneCall = call?.call_type === 'phone'
   const statusText = {
     loading: 'Connecting to call...',
-    ringing: isCaller ? 'Calling...' : 'Incoming video call',
+    ringing: isCaller ? (isPhoneCall ? 'Calling...' : 'Calling...') : (isPhoneCall ? 'Incoming phone call' : 'Incoming video call'),
     accepted: 'Connecting...',
     connecting: 'Connecting...',
     connected: 'Connected',
@@ -473,7 +477,7 @@ export function Call() {
         <span className={`call-connection-dot ${callStatus === 'connected' ? 'connected' : ''}`} aria-hidden="true" />
       </header>
 
-      <section className="call-stage" aria-label="Video call">
+      <section className={`call-stage${isPhoneCall ? ' phone-call' : ''}`} aria-label={isPhoneCall ? 'Phone call' : 'Video call'}>
         <div className={`call-remote-video${remoteStream && !finished ? ' has-video' : ''}`}>
           <video ref={remoteVideoRef} autoPlay playsInline aria-label={`${peerName} video`} />
           {!remoteStream && (
@@ -497,7 +501,7 @@ export function Call() {
         {!channelReady && !finished && <p className="call-hint">Connecting securely to call signaling...</p>}
         {['ringing', 'accepted'].includes(callStatus) && isCaller && !outgoingStarted ? (
           <button className="call-primary-control" type="button" onClick={startOutgoingCall} disabled={!channelReady || startingOutgoing}>
-            <Icon>{startingOutgoing ? 'hourglass_top' : 'videocam'}</Icon> {startingOutgoing ? 'Preparing...' : channelReady ? 'Start call' : 'Connecting...'}
+            <Icon>{startingOutgoing ? 'hourglass_top' : isPhoneCall ? 'call' : 'videocam'}</Icon> {startingOutgoing ? 'Preparing...' : channelReady ? 'Start call' : 'Connecting...'}
           </button>
         ) : callStatus === 'ringing' && !isCaller ? (
           <div className="call-answer-actions">
@@ -505,7 +509,7 @@ export function Call() {
               <Icon>call_end</Icon>
             </button>
             <button className="call-answer-control" type="button" onClick={acceptCall} disabled={!channelReady || accepting} aria-label="Answer call">
-              <Icon>{accepting ? 'hourglass_top' : 'videocam'}</Icon>
+              <Icon>{accepting ? 'hourglass_top' : isPhoneCall ? 'call' : 'videocam'}</Icon>
             </button>
           </div>
         ) : callStatus === 'connected' || callStatus === 'connecting' || callStatus === 'reconnecting' ? (
@@ -513,9 +517,11 @@ export function Call() {
             <button className={`call-toggle-control${muted ? ' selected' : ''}`} type="button" onClick={toggleMicrophone} aria-label={muted ? 'Unmute microphone' : 'Mute microphone'}>
               <Icon>{muted ? 'mic_off' : 'mic'}</Icon>
             </button>
-            <button className={`call-toggle-control${cameraOff ? ' selected' : ''}`} type="button" onClick={toggleCamera} aria-label={cameraOff ? 'Turn camera on' : 'Turn camera off'}>
-              <Icon>{cameraOff ? 'videocam_off' : 'videocam'}</Icon>
-            </button>
+            {!isPhoneCall && (
+              <button className={`call-toggle-control${cameraOff ? ' selected' : ''}`} type="button" onClick={toggleCamera} aria-label={cameraOff ? 'Turn camera on' : 'Turn camera off'}>
+                <Icon>{cameraOff ? 'videocam_off' : 'videocam'}</Icon>
+              </button>
+            )}
             <button className="call-end-control" type="button" onClick={endCall} aria-label="End call">
               <Icon>call_end</Icon>
             </button>
