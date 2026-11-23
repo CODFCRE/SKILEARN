@@ -12,8 +12,10 @@ const sessionStates = {
 export function Sessions() {
   const [tab, setTab] = useState('upcoming')
   const [sessions, setSessions] = useState([])
+  const [userId, setUserId] = useState(null)
   const [loading, setLoading] = useState(Boolean(supabase))
   const [error, setError] = useState('')
+  const [deletingId, setDeletingId] = useState('')
 
   useEffect(() => {
     let active = true
@@ -30,6 +32,7 @@ export function Sessions() {
           if (active) setSessions([])
           return
         }
+        if (active) setUserId(authData.user.id)
 
         const { data: sessionRows, error: sessionsError } = await supabase
           .from('sessions')
@@ -96,6 +99,27 @@ export function Sessions() {
     return !['completed', 'cancelled'].includes(session.status)
   })
   const [icon, title, text] = sessionStates[tab]
+  const deleteSession = async (session) => {
+    if (!supabase || deletingId) return
+    if (!window.confirm(`Delete the ${session.skillTitle} session published for ${session.peerName}?`)) return
+
+    setDeletingId(session.id)
+    setError('')
+    try {
+      const { error: deleteError } = await supabase
+        .from('sessions')
+        .delete()
+        .eq('id', session.id)
+        .eq('mentor_id', userId)
+      if (deleteError) throw deleteError
+      setSessions((current) => current.filter((item) => item.id !== session.id))
+    } catch (requestError) {
+      console.error('Unable to delete session:', requestError)
+      setError(requestError instanceof Error ? requestError.message : 'Unable to delete this session.')
+    } finally {
+      setDeletingId('')
+    }
+  }
 
   return (
     <Screen active="sessions">
@@ -145,6 +169,17 @@ export function Sessions() {
                   <button type="button" onClick={() => navigate('/chat', { sessionId: session.id })}>
                     <Icon>forum</Icon>{tab === 'messages' ? 'Open chat' : 'Message'}
                   </button>
+                  {session.mentor_id === userId && (
+                    <button
+                      className="session-delete-button"
+                      type="button"
+                      onClick={() => void deleteSession(session)}
+                      disabled={deletingId === session.id}
+                    >
+                      <Icon>delete</Icon>
+                      {deletingId === session.id ? 'Deleting...' : 'Delete session'}
+                    </button>
+                  )}
                 </div>
               </article>
             ))}

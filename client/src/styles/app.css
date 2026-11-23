@@ -1645,6 +1645,31 @@ button:disabled {
   opacity: 0.7;
 }
 
+.danger-action {
+  display: inline-flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #fff;
+  background: #a54840;
+  border: 0;
+  border-radius: 14px;
+  font-weight: 800;
+}
+
+.danger-action:disabled,
+.session-delete-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.session-delete-button {
+  color: #a54840 !important;
+  background: #f7e9e5 !important;
+}
+
 .listing-feedback {
   margin: 0;
   padding: 11px 13px;

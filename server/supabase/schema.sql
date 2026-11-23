@@ -618,6 +618,7 @@ drop policy if exists "Availability follows skill visibility" on public.skill_av
 drop policy if exists "Skill owners manage availability" on public.skill_availability;
 drop policy if exists "Session participants view sessions" on public.sessions;
 drop policy if exists "Learners request sessions" on public.sessions;
+drop policy if exists "Session mentors delete their sessions" on public.sessions;
 drop policy if exists "Session participants update sessions" on public.sessions;
 drop policy if exists "Session participants view messages" on public.session_messages;
 drop policy if exists "Session participants send messages" on public.session_messages;
@@ -672,6 +673,8 @@ create policy "Session participants view sessions"
   on public.sessions for select to authenticated using (mentor_id = auth.uid() or learner_id = auth.uid());
 create policy "Learners request sessions"
   on public.sessions for insert to authenticated with check (learner_id = auth.uid());
+create policy "Session mentors delete their sessions"
+  on public.sessions for delete to authenticated using (mentor_id = auth.uid());
 create policy "Session participants view messages"
   on public.session_messages for select to authenticated using (
     exists (select 1 from public.sessions where sessions.id = session_messages.session_id and (sessions.mentor_id = auth.uid() or sessions.learner_id = auth.uid()))
@@ -794,21 +797,39 @@ drop policy if exists "Call participants can receive private signaling" on realt
 drop policy if exists "Call participants can send private signaling" on realtime.messages;
 create policy "Call participants can receive private signaling"
   on realtime.messages for select to authenticated using (
-    split_part(realtime.topic(), ':', 1) = 'skilearn-call'
+    (
+      split_part(realtime.topic(), ':', 1) = 'skilearn-call'
+      or split_part(realtime.topic(), ':', 2) = 'skilearn-call'
+    )
     and exists (
       select 1
       from public.call_sessions
-      where call_sessions.id::text = split_part(realtime.topic(), ':', 2)
+      where call_sessions.id::text = (
+        case
+          when split_part(realtime.topic(), ':', 1) = 'skilearn-call'
+            then split_part(realtime.topic(), ':', 2)
+          else split_part(realtime.topic(), ':', 3)
+        end
+      )
         and auth.uid() in (call_sessions.caller_id, call_sessions.recipient_id)
     )
   );
 create policy "Call participants can send private signaling"
   on realtime.messages for insert to authenticated with check (
-    split_part(realtime.topic(), ':', 1) = 'skilearn-call'
+    (
+      split_part(realtime.topic(), ':', 1) = 'skilearn-call'
+      or split_part(realtime.topic(), ':', 2) = 'skilearn-call'
+    )
     and exists (
       select 1
       from public.call_sessions
-      where call_sessions.id::text = split_part(realtime.topic(), ':', 2)
+      where call_sessions.id::text = (
+        case
+          when split_part(realtime.topic(), ':', 1) = 'skilearn-call'
+            then split_part(realtime.topic(), ':', 2)
+          else split_part(realtime.topic(), ':', 3)
+        end
+      )
         and auth.uid() in (call_sessions.caller_id, call_sessions.recipient_id)
     )
   );

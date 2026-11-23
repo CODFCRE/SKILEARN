@@ -95,7 +95,7 @@ export function Call() {
 
     let active = true
     const channel = supabase.channel(`skilearn-call:${call.id}`, {
-      config: { private: true, broadcast: { self: false } },
+      config: { broadcast: { self: false } },
     })
     channelRef.current = channel
 
