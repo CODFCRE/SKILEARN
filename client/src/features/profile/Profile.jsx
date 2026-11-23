@@ -13,6 +13,7 @@ export function Profile() {
   const [nameDraft, setNameDraft] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [uploadingBanner, setUploadingBanner] = useState(false)
   const [deletingSkillId, setDeletingSkillId] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -58,7 +59,7 @@ export function Profile() {
         ] = await Promise.all([
           supabase
             .from('profiles')
-            .select('display_name,campus_email,avatar_path,verification_status')
+            .select('display_name,campus_email,avatar_path,banner_path,verification_status')
             .eq('id', user.id)
             .maybeSingle(),
           supabase
@@ -101,6 +102,14 @@ export function Profile() {
           if (avatarError) queryErrors.push(avatarError)
           else avatarUrl = avatarData.signedUrl
         }
+        let bannerUrl = ''
+        if (profileResult.data?.banner_path) {
+          const { data: bannerData, error: bannerError } = await supabase.storage
+            .from('files')
+            .createSignedUrl(profileResult.data.banner_path, 3600)
+          if (bannerError) queryErrors.push(bannerError)
+          else bannerUrl = bannerData.signedUrl
+        }
 
         if (queryErrors.length) {
           console.error('Unable to load some profile data:', queryErrors)
@@ -115,6 +124,7 @@ export function Profile() {
             ratings: ratingsResult.data || [],
             balance: balanceResult.data?.balance ?? null,
             avatarUrl,
+            bannerUrl,
           })
           setLoadError(
             queryErrors.length
@@ -271,6 +281,53 @@ export function Profile() {
     }
   }
 
+  const uploadBanner = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file || !supabase || !user || uploadingBanner) return
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setActionError('Choose a JPG, PNG, or WebP banner image.')
+      return
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setActionError('Choose a banner image smaller than 8 MB.')
+      return
+    }
+
+    setUploadingBanner(true)
+    setActionError('')
+    try {
+      const extension = file.type === 'image/jpeg' ? 'jpg' : file.type.split('/')[1]
+      const bannerPath = `${user.id}/banner/${crypto.randomUUID()}.${extension}`
+      const { error: uploadError } = await supabase.storage
+        .from('files')
+        .upload(bannerPath, file, { upsert: false, contentType: file.type })
+      if (uploadError) throw uploadError
+
+      const { data: bannerData, error: bannerError } = await supabase.storage
+        .from('files')
+        .createSignedUrl(bannerPath, 3600)
+      if (bannerError) throw bannerError
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ banner_path: bannerPath })
+        .eq('id', user.id)
+      if (profileError) throw profileError
+
+      setProfileData((current) => ({
+        ...current,
+        profile: { ...current.profile, banner_path: bannerPath },
+        bannerUrl: bannerData.signedUrl,
+      }))
+    } catch (error) {
+      console.error('Unable to update profile banner:', error)
+      setActionError(error instanceof Error ? error.message : 'Unable to update your profile banner.')
+    } finally {
+      setUploadingBanner(false)
+    }
+  }
+
   const deleteSkill = async (skill) => {
     if (!supabase || !user || deletingSkillId) return
     if (!window.confirm(`Delete "${skill.title}" from your profile listings?`)) return
@@ -325,9 +382,25 @@ export function Profile() {
           <>
             <section className="profile-card">
               <div className="profile-banner">
+                {profileData?.bannerUrl && (
+                  <img className="profile-banner-image" src={profileData.bannerUrl} alt="Profile banner" />
+                )}
                 <span className="profile-status">
                   {user ? `Campus peer Â· ${formattedStatus}` : 'Campus peer profile'}
                 </span>
+                {user && (
+                  <label className="profile-banner-edit" aria-disabled={uploadingBanner}>
+                    <Icon>add_photo_alternate</Icon>
+                    {uploadingBanner ? 'Uploading...' : 'Change banner'}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={uploadBanner}
+                      disabled={uploadingBanner}
+                      aria-label="Upload a profile banner"
+                    />
+                  </label>
+                )}
               </div>
               <div className="profile-card-content">
                 <div className="profile-identity">

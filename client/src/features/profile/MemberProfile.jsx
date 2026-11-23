@@ -26,7 +26,7 @@ export function MemberProfile() {
         const [{ data: authData, error: authError }, profileResult, skillsResult] = await Promise.all([
           supabase.auth.getUser(),
           supabase.from('profiles')
-            .select('id,display_name,avatar_path,verification_status,created_at')
+            .select('id,display_name,avatar_path,banner_path,verification_status,created_at')
             .eq('id', memberId)
             .maybeSingle(),
           supabase.from('skills')
@@ -48,10 +48,18 @@ export function MemberProfile() {
           if (avatarError) throw avatarError
           avatarUrl = avatar.signedUrl
         }
+        let bannerUrl = ''
+        if (profileResult.data.banner_path) {
+          const { data: banner, error: bannerError } = await supabase.storage
+            .from('files')
+            .createSignedUrl(profileResult.data.banner_path, 3600)
+          if (bannerError) throw bannerError
+          bannerUrl = banner.signedUrl
+        }
 
         if (active) {
           setUserId(authData.user?.id || null)
-          setMember({ ...profileResult.data, avatarUrl })
+          setMember({ ...profileResult.data, avatarUrl, bannerUrl })
           setSkills(skillsResult.data || [])
         }
       } catch (requestError) {
@@ -87,6 +95,9 @@ export function MemberProfile() {
           <>
             <section className="profile-card">
               <div className="profile-banner">
+                {member.bannerUrl && (
+                  <img className="profile-banner-image" src={member.bannerUrl} alt={`${displayName} profile banner`} />
+                )}
                 <span className="profile-status">Skilearn member</span>
               </div>
               <div className="profile-card-content">

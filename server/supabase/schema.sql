@@ -27,6 +27,7 @@ create table if not exists public.profiles (
   display_name text,
   campus_email text,
   avatar_path text,
+  banner_path text,
   verification_status text not null default 'pending'
     check (verification_status in ('pending', 'verified', 'rejected')),
   created_at timestamptz not null default timezone('utc', now()),
@@ -772,6 +773,7 @@ create policy "Signed-in users can view active profile photos"
       select 1
       from public.profiles
       where profiles.avatar_path = storage.objects.name
+        or profiles.banner_path = storage.objects.name
     )
   );
 create policy "Direct message participants can view attachments"
