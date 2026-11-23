@@ -287,9 +287,18 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
                       <small>Cr / hour</small>
                     </div>
                   </footer>
-                  <span className="skill-card-action" aria-hidden="true">
-                    View skill <Icon>arrow_forward</Icon>
-                  </span>
+                  <button
+                    className="skill-book-button"
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      navigate('/skill-detail', { skillId: skill.id })
+                    }}
+                    aria-label={`Book ${skill.title}`}
+                  >
+                    <Icon>calendar_add_on</Icon>
+                    Book
+                  </button>
                 </div>
               </SpotlightCard>
             ))}

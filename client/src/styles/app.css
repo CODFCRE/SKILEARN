@@ -1296,8 +1296,38 @@ button:disabled {
   font-size: 16px;
 }
 
-.skill-card-action {
-  display: none;
+.skill-book-button {
+  display: inline-flex;
+  width: 100%;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: #fff;
+  background: var(--olive);
+  border: 0;
+  border-radius: 12px;
+  box-shadow: 0 7px 16px rgba(79, 102, 27, 0.14);
+  font-size: 12px;
+  font-weight: 800;
+  transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.skill-book-button .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.skill-book-button:focus-visible {
+  outline: 3px solid rgba(79, 102, 27, 0.28);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .skill-book-button:hover {
+    background: #405417;
+    box-shadow: 0 9px 20px rgba(79, 102, 27, 0.22);
+    transform: translateY(-1px);
+  }
 }
 
 .profile-shell .profile-skills-list,
@@ -5080,6 +5110,12 @@ html[data-theme='dark'] .skill-owner-avatar {
 html[data-theme='dark'] .offer-skill-button {
   color: #17200f;
   background: #a8c76a;
+}
+
+html[data-theme='dark'] .skill-book-button {
+  color: #17200f;
+  background: #a8c76a;
+  box-shadow: 0 7px 16px rgba(0, 0, 0, 0.18);
 }
 
 html[data-theme='dark'] .people-card {
