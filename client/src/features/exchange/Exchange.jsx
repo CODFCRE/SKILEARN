@@ -133,6 +133,26 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
         )}
       />
       <main className="page exchange-page">
+        <section className="exchange-heading">
+          <div>
+            <span className="exchange-eyebrow">Community exchange</span>
+            <h1>{discoveryMode === 'skills' ? 'Discover skills' : 'Find your people'}</h1>
+            <p>
+              {discoveryMode === 'skills'
+                ? 'Learn something new from someone nearby.'
+                : 'Meet members and start an exchange.'}
+            </p>
+          </div>
+          <button
+            className="offer-skill-button"
+            type="button"
+            onClick={() => navigate('/skill-listing')}
+            aria-label="Offer a skill"
+          >
+            <Icon>add</Icon>
+            <span>Offer a skill</span>
+          </button>
+        </section>
         <div className="exchange-discovery">
           <div className="search-wrap">
             <Icon>search</Icon>
@@ -142,6 +162,16 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
               placeholder={discoveryMode === 'skills' ? 'Search skills or people...' : 'Search people...'}
               aria-label={discoveryMode === 'skills' ? 'Search skills or people' : 'Search people'}
             />
+            {query && (
+              <button
+                className="search-clear"
+                type="button"
+                onClick={() => setQuery('')}
+                aria-label="Clear search"
+              >
+                <Icon>close</Icon>
+              </button>
+            )}
           </div>
           <div className="discovery-switch" role="tablist" aria-label="Search category">
             <button
@@ -181,6 +211,16 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
                 {item}
               </button>
             ))}
+          </div>
+        )}
+        {!loading && signedIn && !loadError && (
+          <div className="exchange-results-bar" aria-live="polite">
+            <strong>
+              {discoveryMode === 'skills'
+                ? `${filteredSkills.length} ${filteredSkills.length === 1 ? 'skill' : 'skills'}`
+                : `${filteredPeople.length} ${filteredPeople.length === 1 ? 'person' : 'people'}`}
+            </strong>
+            <span>{category !== 'All' ? category : 'Recommended for you'}</span>
           </div>
         )}
         {loadError && (
@@ -235,9 +275,21 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
                   <h3>{skill.title}</h3>
                   <p>{skill.description || skill.category}</p>
                   <footer>
-                    <span><Icon>person</Icon>{skill.person}</span>
-                    <strong>{Number(skill.credit_rate).toFixed(2)} Cr/hr</strong>
+                    <div className="skill-owner">
+                      <span className="skill-owner-avatar">{skill.person.slice(0, 1).toUpperCase()}</span>
+                      <span>
+                        <small>Hosted by</small>
+                        <strong>{skill.person}</strong>
+                      </span>
+                    </div>
+                    <div className="skill-price">
+                      <strong>{Number(skill.credit_rate).toFixed(2)}</strong>
+                      <small>Cr / hour</small>
+                    </div>
                   </footer>
+                  <span className="skill-card-action" aria-hidden="true">
+                    View skill <Icon>arrow_forward</Icon>
+                  </span>
                 </div>
               </SpotlightCard>
             ))}
@@ -277,7 +329,9 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
                       {availability}
                     </span>
                   </div>
-                  <span className="people-view-profile">View profile</span>
+                  <span className="people-view-profile" aria-hidden="true">
+                    <Icon>arrow_forward</Icon>
+                  </span>
                 </article>
               )
             })}
