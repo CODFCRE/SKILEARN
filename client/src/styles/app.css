@@ -3152,6 +3152,37 @@ button:disabled {
   white-space: nowrap;
 }
 
+.profile-skill-actions {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.profile-skill-actions > strong {
+  color: var(--ink);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.profile-skill-delete {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 9px;
+  color: #a54840;
+  background: #f7e9e5;
+  border: 1px solid #e3bbb4;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.profile-skill-delete:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .profile-error,
 .profile-loading {
   margin: 0 0 16px;

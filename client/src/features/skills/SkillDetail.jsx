@@ -12,7 +12,6 @@ export function SkillDetail() {
   const [startsAt, setStartsAt] = useState('')
   const [loading, setLoading] = useState(Boolean(supabase))
   const [booking, setBooking] = useState(false)
-  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
@@ -120,33 +119,6 @@ export function SkillDetail() {
     }
   }
 
-  const deleteListing = async () => {
-    if (!supabase || !skill || deleting) return
-    if (!window.confirm(`Delete your published listing "${skill.title}"?`)) return
-
-    setDeleting(true)
-    setError('')
-    setNotice('')
-    try {
-      const { error: deleteError } = await supabase
-        .from('skills')
-        .delete()
-        .eq('id', skill.id)
-        .eq('owner_id', userId)
-      if (deleteError) throw deleteError
-      setNotice('Your skill listing was deleted.')
-      setSkill(null)
-      window.setTimeout(() => navigate('/'), 700)
-    } catch (requestError) {
-      console.error('Unable to delete skill listing:', requestError)
-      setError(requestError instanceof Error
-        ? requestError.message
-        : 'Unable to delete this skill listing.')
-    } finally {
-      setDeleting(false)
-    }
-  }
-
   return (
     <Screen active="exchange">
       <Header back />
@@ -201,14 +173,9 @@ export function SkillDetail() {
             {error && <div className="profile-error" role="alert">{error}</div>}
             {notice && <p className="listing-feedback success" role="status">{notice}</p>}
             {userId === skill.owner_id ? (
-              <button
-                className="danger-action"
-                type="button"
-                onClick={() => void deleteListing()}
-                disabled={deleting}
-              >
-                <Icon>delete</Icon>
-                {deleting ? 'Deleting listing...' : 'Delete published listing'}
+              <button className="primary-action" type="button" onClick={() => navigate('/profile')}>
+                Manage this listing on your profile
+                <Icon>arrow_forward</Icon>
               </button>
             ) : userId ? (
               <form className="booking-form" onSubmit={handleBooking}>

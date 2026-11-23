@@ -13,6 +13,7 @@ export function Profile() {
   const [nameDraft, setNameDraft] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [deletingSkillId, setDeletingSkillId] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
@@ -64,6 +65,7 @@ export function Profile() {
             .from('skills')
             .select('id,title,description,category,credit_rate,status,created_at')
             .eq('owner_id', user.id)
+            .neq('status', 'archived')
             .order('created_at', { ascending: false }),
           supabase
             .from('sessions')
@@ -269,6 +271,33 @@ export function Profile() {
     }
   }
 
+  const deleteSkill = async (skill) => {
+    if (!supabase || !user || deletingSkillId) return
+    if (!window.confirm(`Delete "${skill.title}" from your profile listings?`)) return
+
+    setDeletingSkillId(skill.id)
+    setActionError('')
+    try {
+      const { error } = await supabase
+        .from('skills')
+        .update({ status: 'archived' })
+        .eq('id', skill.id)
+        .eq('owner_id', user.id)
+      if (error) throw error
+      setProfileData((current) => ({
+        ...current,
+        skills: current.skills.filter((item) => item.id !== skill.id),
+      }))
+    } catch (error) {
+      console.error('Unable to delete skill listing:', error)
+      setActionError(error instanceof Error
+        ? error.message
+        : 'Unable to delete this skill listing.')
+    } finally {
+      setDeletingSkillId('')
+    }
+  }
+
   return (
     <Screen active="profile" className="design-shell profile-shell">
       <Header
@@ -427,7 +456,19 @@ export function Profile() {
                         <p>{skill.description || skill.category}</p>
                         <span>{skill.category} Â· {skill.status}</span>
                       </div>
-                      <strong>{Number(skill.credit_rate).toFixed(2)} Cr</strong>
+                      <div className="profile-skill-actions">
+                        <strong>{Number(skill.credit_rate).toFixed(2)} Cr</strong>
+                        <button
+                          className="profile-skill-delete"
+                          type="button"
+                          onClick={() => void deleteSkill(skill)}
+                          disabled={deletingSkillId === skill.id}
+                          aria-label={`Delete ${skill.title}`}
+                        >
+                          <Icon>delete</Icon>
+                          {deletingSkillId === skill.id ? 'Deleting...' : 'Delete'}
+                        </button>
+                      </div>
                     </article>
                   ))}
                 </div>
