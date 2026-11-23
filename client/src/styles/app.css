@@ -579,10 +579,17 @@ button:disabled {
   place-items: center;
   overflow: hidden;
   color: var(--olive);
-  background: #dfe5d4;
-  border: 2px solid var(--lime);
+  background: transparent;
+  border: 0;
   border-radius: 15px 7px 15px 7px;
   transform: rotate(3deg);
+}
+
+.brand-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: rotate(-3deg);
 }
 
 .small-avatar {

@@ -150,7 +150,7 @@ export function Header({ back = false, help = false, rightAction }) {
               </button>
             )}
             <div className="brand-mark">
-              <Icon>person</Icon>
+              <img src="/favicon.svg" alt="" />
             </div>
             <span className="brand">Skilearn</span>
           </div>
