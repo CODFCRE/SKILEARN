@@ -3,6 +3,7 @@ import { EmptyState, Header, Icon, Screen } from '../../shared/components.jsx'
 import { navigate } from '../../shared/lib/navigation.js'
 import { supabase } from '../../shared/lib/supabase.js'
 import { SpotlightCard } from '../../shared/SpotlightCard.jsx'
+import { readCache, writeCache } from '../../shared/lib/cache.js'
 
 export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
   const [query, setQuery] = useState('')
@@ -26,8 +27,14 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
       setSignedIn(Boolean(session))
 
       if (!session) {
-        setSkills([])
-        setPeople([])
+        const cached = await readCache('exchange-catalog')
+        if (active && cached?.skills) {
+          setSkills(cached.skills)
+          setPeople(cached.people || [])
+        } else {
+          setSkills([])
+          setPeople([])
+        }
         setLoading(false)
         return
       }
@@ -72,6 +79,13 @@ export function Exchange({ onlineMemberIds, presenceReady, presenceError }) {
             ...person,
             displayName: person.display_name || 'Campus member',
           })).filter((person) => person.id !== session.user.id))
+          void writeCache('exchange-catalog', {
+            skills: skillsWithMedia,
+            people: (peopleResult.data || []).map((person) => ({
+              ...person,
+              displayName: person.display_name || 'Campus member',
+            })).filter((person) => person.id !== session.user.id),
+          })
         }
       } catch (error) {
         console.error('Unable to load published skills:', error)

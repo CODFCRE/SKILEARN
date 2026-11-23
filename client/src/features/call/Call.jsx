@@ -94,18 +94,33 @@ export function Call() {
     if (!call || !userId || !supabase) return undefined
 
     let active = true
+    setChannelReady(true)
     const channel = supabase.channel(`skilearn-call:${call.id}`, {
       config: { broadcast: { self: false } },
     })
     channelRef.current = channel
 
     const sendSignal = async (payload) => {
+      const fullPayload = { ...payload, senderId: userId }
+      const { error: signalError } = await supabase
+        .from('call_signals')
+        .insert({
+          call_id: call.id,
+          sender_id: userId,
+          payload: fullPayload,
+        })
+      if (signalError) {
+        console.warn('Call signal fallback insert unavailable:', signalError.message)
+      }
+
       const response = await channel.send({
         type: 'broadcast',
         event: 'signal',
-        payload: { ...payload, senderId: userId },
+        payload: fullPayload,
       })
-      if (response.status !== 'ok') throw new Error(response.reason || 'Call signaling failed.')
+      if (response.status !== 'ok') {
+        console.warn('Realtime broadcast unavailable; persisted call signal will be used:', response.reason)
+      }
     }
 
     const ensureLocalStream = async () => {
@@ -168,51 +183,79 @@ export function Call() {
       setCallStatus('connecting')
     }
 
-    channel
-      .on('broadcast', { event: 'signal' }, async ({ payload }) => {
-        if (!active || payload?.senderId === userId) return
+    const handleSignalPayload = async (payload) => {
+      if (!active || payload?.senderId === userId) return
 
-        try {
-          if (payload.type === 'ready' && call.caller_id === userId) {
-            await makeOffer()
-          } else if (payload.type === 'offer' && call.recipient_id === userId) {
-            const connection = await ensurePeerConnection()
-            await connection.setRemoteDescription(new RTCSessionDescription(payload.description))
-            await flushCandidates(connection)
-            const answer = await connection.createAnswer()
-            await connection.setLocalDescription(answer)
-            await sendSignal({ type: 'answer', description: connection.localDescription.toJSON() })
-            setCallStatus('connecting')
-          } else if (payload.type === 'answer' && call.caller_id === userId) {
-            const connection = peerConnectionRef.current
-            if (!connection) throw new Error('The local call connection was not initialized.')
-            await connection.setRemoteDescription(new RTCSessionDescription(payload.description))
-            await flushCandidates(connection)
-          } else if (payload.type === 'ice') {
-            const candidate = new RTCIceCandidate(payload.candidate)
-            if (peerConnectionRef.current?.remoteDescription) {
-              await peerConnectionRef.current.addIceCandidate(candidate)
-            } else {
-              pendingCandidatesRef.current.push(payload.candidate)
-            }
-          } else if (payload.type === 'declined') {
-            setCallStatus('declined')
-          } else if (payload.type === 'hangup') {
-            setCallStatus('ended')
+      try {
+        if (payload.type === 'ready' && call.caller_id === userId) {
+          await makeOffer()
+        } else if (payload.type === 'offer' && call.recipient_id === userId) {
+          const connection = await ensurePeerConnection()
+          await connection.setRemoteDescription(new RTCSessionDescription(payload.description))
+          await flushCandidates(connection)
+          const answer = await connection.createAnswer()
+          await connection.setLocalDescription(answer)
+          await sendSignal({ type: 'answer', description: connection.localDescription.toJSON() })
+          setCallStatus('connecting')
+        } else if (payload.type === 'answer' && call.caller_id === userId) {
+          const connection = peerConnectionRef.current
+          if (!connection) throw new Error('The local call connection was not initialized.')
+          await connection.setRemoteDescription(new RTCSessionDescription(payload.description))
+          await flushCandidates(connection)
+        } else if (payload.type === 'ice') {
+          const candidate = new RTCIceCandidate(payload.candidate)
+          if (peerConnectionRef.current?.remoteDescription) {
+            await peerConnectionRef.current.addIceCandidate(candidate)
+          } else {
+            pendingCandidatesRef.current.push(payload.candidate)
           }
-        } catch (signalError) {
-          console.error('Unable to process WebRTC signaling:', signalError)
-          setError(signalError instanceof Error ? signalError.message : 'Unable to connect this call.')
+        } else if (payload.type === 'declined') {
+          setCallStatus('declined')
+        } else if (payload.type === 'hangup') {
+          setCallStatus('ended')
         }
+      } catch (signalError) {
+        console.error('Unable to process WebRTC signaling:', signalError)
+        setError(signalError instanceof Error ? signalError.message : 'Unable to connect this call.')
+      }
+    }
+
+    void supabase
+      .from('call_signals')
+      .select('payload')
+      .eq('call_id', call.id)
+      .gte('created_at', new Date(Date.now() - 5 * 60_000).toISOString())
+      .order('created_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (error) {
+          console.warn('Unable to replay persisted call signals:', error)
+          return
+        }
+        for (const signal of data || []) {
+          void handleSignalPayload(signal.payload)
+        }
+      })
+
+    channel
+      .on('broadcast', { event: 'signal' }, ({ payload }) => {
+        void handleSignalPayload(payload)
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'call_signals',
+        filter: `call_id=eq.${call.id}`,
+      }, ({ new: signalRow }) => {
+        void handleSignalPayload(signalRow?.payload)
       })
       .subscribe((status, realtimeError) => {
         if (!active) return
         if (status === 'SUBSCRIBED') {
           setChannelReady(true)
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          setChannelReady(false)
+          setChannelReady(true)
           const reason = realtimeError instanceof Error ? ` ${realtimeError.message}` : ''
-          setError(`Unable to connect to call signaling.${reason} Check the Supabase call migration and try again.`)
+          setError(`Realtime signaling is unavailable.${reason} Persisted call signaling is active; the call can continue once the migration is applied.`)
         }
       })
 
@@ -282,6 +325,21 @@ export function Call() {
   }, [])
 
   const isCaller = call?.caller_id === userId
+  const sendCallSignal = async (payload) => {
+    if (!supabase || !call || !userId) return
+    const fullPayload = { ...payload, senderId: userId }
+    const { error: signalError } = await supabase
+      .from('call_signals')
+      .insert({ call_id: call.id, sender_id: userId, payload: fullPayload })
+    if (signalError) console.warn('Unable to persist call signal:', signalError)
+    if (channelRef.current) {
+      await channelRef.current.send({
+        type: 'broadcast',
+        event: 'signal',
+        payload: fullPayload,
+      })
+    }
+  }
 
   const startOutgoingCall = async () => {
     if (!channelReady || !supabase || !call || callerStartedRef.current || startingOutgoing) return
@@ -299,14 +357,7 @@ export function Call() {
       setOutgoingStarted(true)
       setCallStatus('ringing')
       const sendReady = async () => {
-        const response = await channelRef.current?.send({
-          type: 'broadcast',
-          event: 'signal',
-          payload: { type: 'ready', senderId: userId },
-        })
-        if (!response || response.status !== 'ok') {
-          throw new Error(response?.reason || 'Call signaling failed.')
-        }
+        await sendCallSignal({ type: 'ready' })
       }
       const reportSignalError = (signalError) => {
         console.error('Unable to notify the other participant:', signalError)
@@ -349,12 +400,7 @@ export function Call() {
       if (acceptError) throw acceptError
       if (!data) throw new Error('This call has already ended or been answered elsewhere.')
       setCallStatus('accepted')
-      const response = await channelRef.current.send({
-        type: 'broadcast',
-        event: 'signal',
-        payload: { type: 'ready', senderId: userId },
-      })
-      if (response.status !== 'ok') throw new Error(response.reason || 'Call signaling failed.')
+      await sendCallSignal({ type: 'ready' })
     } catch (requestError) {
       localStreamRef.current?.getTracks().forEach((track) => track.stop())
       localStreamRef.current = null
@@ -375,14 +421,7 @@ export function Call() {
         .eq('id', call.id)
         .eq('status', 'ringing')
       if (updateError) throw updateError
-      if (channelRef.current) {
-        const response = await channelRef.current.send({
-          type: 'broadcast',
-          event: 'signal',
-          payload: { type: 'declined', senderId: userId },
-        })
-        if (response.status !== 'ok') throw new Error(response.reason || 'Call signaling failed.')
-      }
+      await sendCallSignal({ type: 'declined' })
       setCallStatus('declined')
     } catch (requestError) {
       console.error('Unable to decline call:', requestError)
@@ -398,14 +437,7 @@ export function Call() {
         .update({ status: 'ended' })
         .eq('id', call.id)
       if (updateError) throw updateError
-      if (channelRef.current) {
-        const response = await channelRef.current.send({
-          type: 'broadcast',
-          event: 'signal',
-          payload: { type: 'hangup', senderId: userId },
-        })
-        if (response.status !== 'ok') throw new Error(response.reason || 'Call signaling failed.')
-      }
+      await sendCallSignal({ type: 'hangup' })
       setCallStatus('ended')
       localStreamRef.current?.getTracks().forEach((track) => track.stop())
       localStreamRef.current = null

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { Icon } from '../../shared/components.jsx'
 import { goBack, navigate } from '../../shared/lib/navigation.js'
 import { supabase } from '../../shared/lib/supabase.js'
-import { readCache, writeCache } from '../../shared/lib/cache.js'
 import { sendPushNotification } from '../../shared/lib/notifications.js'
 
 function orderedParticipants(firstId, secondId) {
@@ -57,8 +56,6 @@ export function DirectMessage() {
 
   useEffect(() => {
     let active = true
-    const cacheKey = `direct-message:${memberId}`
-
     const loadDirectMessage = async () => {
       if (!supabase || !memberId) {
         setError(!supabase ? 'Supabase is not configured.' : 'No member was selected.')
@@ -67,14 +64,6 @@ export function DirectMessage() {
       }
 
       try {
-        const cached = await readCache(cacheKey)
-        if (active && cached?.messages) {
-          setUserId(cached.userId || null)
-          setPeerName(cached.peerName || 'Campus member')
-          setThread(cached.thread || null)
-          setMessages(cached.messages)
-          setLoading(false)
-        }
         const { data: authData, error: authError } = await supabase.auth.getUser()
         if (authError) throw authError
         if (!authData.user) throw new Error('Sign in to send a direct message.')
@@ -130,12 +119,6 @@ export function DirectMessage() {
           setThread(threadData)
           const hydrated = await hydrateAttachments(messageRows || [])
           setMessages(hydrated)
-          void writeCache(cacheKey, {
-            userId: authData.user.id,
-            peerName: peerResult.data.display_name || 'Campus member',
-            thread: threadData,
-            messages: hydrated,
-          })
         }
       } catch (requestError) {
         console.error('Unable to open direct messages:', requestError)

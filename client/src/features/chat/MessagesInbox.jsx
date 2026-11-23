@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react'
 import { Header, Icon, Screen } from '../../shared/components.jsx'
 import { navigate } from '../../shared/lib/navigation.js'
 import { supabase } from '../../shared/lib/supabase.js'
-import { readCache, writeCache } from '../../shared/lib/cache.js'
-
 export function MessagesInbox() {
   const [threads, setThreads] = useState([])
   const [query, setQuery] = useState('')
@@ -20,11 +18,6 @@ export function MessagesInbox() {
       }
 
       try {
-        const cached = await readCache('messages-inbox')
-        if (active && cached?.length) {
-          setThreads(cached)
-          setLoading(false)
-        }
         const { data: authData, error: authError } = await supabase.auth.getUser()
         if (authError) throw authError
         if (!authData.user) throw new Error('Sign in to view your messages.')
@@ -84,7 +77,6 @@ export function MessagesInbox() {
             return bTime - aTime
           })
           setThreads(loadedThreads)
-          void writeCache('messages-inbox', loadedThreads)
         }
       } catch (requestError) {
         console.error('Unable to load messages:', requestError)
