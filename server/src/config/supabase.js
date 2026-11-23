@@ -13,5 +13,10 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 
 // The anon key keeps Supabase row-level security applied to user requests.
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+  : null;
+
+supabase.admin = supabaseAdmin;
 
 module.exports = supabase;

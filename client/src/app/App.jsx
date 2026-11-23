@@ -16,6 +16,7 @@ import { MemberProfile } from '../features/profile/MemberProfile.jsx'
 import { applyTheme, getThemePreference } from '../shared/lib/theme.js'
 import { supabase } from '../shared/lib/supabase.js'
 import { navigate } from '../shared/lib/navigation.js'
+import { registerExpoPushDevice } from '../shared/lib/notifications.js'
 
 const Call = lazy(() => import('../features/call/Call.jsx').then((module) => ({ default: module.Call })))
 
@@ -38,6 +39,53 @@ function App() {
     window.addEventListener('skilearn-theme-change', updateTheme)
     return () => window.removeEventListener('skilearn-theme-change', updateTheme)
   }, [theme])
+
+  useEffect(() => {
+    const handleNativePushDevice = (event) => {
+      if (event.detail?.token) void registerExpoPushDevice(event.detail.token)
+    }
+    window.addEventListener('skilearn-expo-push-token', handleNativePushDevice)
+    return () => window.removeEventListener('skilearn-expo-push-token', handleNativePushDevice)
+  }, [])
+
+  useEffect(() => {
+    if (!supabase || !('serviceWorker' in navigator) || !('PushManager' in window)) return
+    const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
+    if (!publicKey) return
+
+    const registerWebPush = async () => {
+      const registration = await navigator.serviceWorker.register('/sw.js')
+      const permission = await Notification.requestPermission()
+      if (permission !== 'granted') return
+
+      let subscription = await registration.pushManager.getSubscription()
+      if (!subscription) {
+        const padding = '='.repeat((4 - (publicKey.length % 4)) % 4)
+        const raw = atob((publicKey + padding).replace(/-/g, '+').replace(/_/g, '/'))
+        const applicationServerKey = new Uint8Array(raw.length)
+        for (let index = 0; index < raw.length; index += 1) {
+          applicationServerKey[index] = raw.charCodeAt(index)
+        }
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey,
+        })
+      }
+
+      const { data: authData } = await supabase.auth.getUser()
+      if (!authData.user) return
+      await supabase.from('push_devices').upsert({
+        user_id: authData.user.id,
+        platform: 'web',
+        token: subscription.endpoint,
+        subscription: subscription.toJSON(),
+      }, { onConflict: 'user_id,platform,token' })
+    }
+
+    void registerWebPush().catch((error) => {
+      console.warn('Unable to register browser push notifications:', error)
+    })
+  }, [])
 
   useEffect(() => {
     if (!supabase) return undefined

@@ -17,6 +17,10 @@ Configure these in the Vercel project settings for the server service:
 ```text
 SUPABASE_URL
 SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+VAPID_PUBLIC_KEY
+VAPID_PRIVATE_KEY
+VAPID_SUBJECT
 ```
 
 Configure these for the client service:
@@ -24,6 +28,8 @@ Configure these for the client service:
 ```text
 VITE_SUPABASE_URL
 VITE_SUPABASE_ANON_KEY
+VITE_VAPID_PUBLIC_KEY
+VITE_NOTIFICATION_API_URL
 ```
 
 Add the deployed client URL and its `/login`, `/profile`, and `/auth/error` paths to the Supabase Auth URL configuration and OAuth redirect allowlists. Google OAuth uses Supabase Auth's provider callback, then returns to the client at `/auth/error`; successful authentication continues to `/profile`.

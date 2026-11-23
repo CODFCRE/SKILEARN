@@ -7,7 +7,14 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "android": {
-      "package": "com.skilearn.android"
+      "package": "com.skilearn.android",
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "MODIFY_AUDIO_SETTINGS",
+        "POST_NOTIFICATIONS",
+        "USE_FULL_SCREEN_INTENT"
+      ]
     }
   }
 }

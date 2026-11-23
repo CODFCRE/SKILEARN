@@ -37,3 +37,9 @@ expoAutolinking.useExpoVersionCatalog()
 
 include ':app'
 includeBuild(expoAutolinking.reactNativeGradlePlugin)
+
+def webViewProjectDir = new File(rootProject.projectDir.parentFile, "node_modules/react-native-webview/android")
+if (webViewProjectDir.exists()) {
+  include ':react-native-webview'
+  project(':react-native-webview').projectDir = webViewProjectDir
+}

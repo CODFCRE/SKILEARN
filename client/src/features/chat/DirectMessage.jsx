@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Icon } from '../../shared/components.jsx'
 import { goBack, navigate } from '../../shared/lib/navigation.js'
 import { supabase } from '../../shared/lib/supabase.js'
+import { readCache, writeCache } from '../../shared/lib/cache.js'
+import { sendPushNotification } from '../../shared/lib/notifications.js'
 
 function orderedParticipants(firstId, secondId) {
   return firstId < secondId
@@ -55,6 +57,7 @@ export function DirectMessage() {
 
   useEffect(() => {
     let active = true
+    const cacheKey = `direct-message:${memberId}`
 
     const loadDirectMessage = async () => {
       if (!supabase || !memberId) {
@@ -64,6 +67,14 @@ export function DirectMessage() {
       }
 
       try {
+        const cached = await readCache(cacheKey)
+        if (active && cached?.messages) {
+          setUserId(cached.userId || null)
+          setPeerName(cached.peerName || 'Campus member')
+          setThread(cached.thread || null)
+          setMessages(cached.messages)
+          setLoading(false)
+        }
         const { data: authData, error: authError } = await supabase.auth.getUser()
         if (authError) throw authError
         if (!authData.user) throw new Error('Sign in to send a direct message.')
@@ -117,7 +128,14 @@ export function DirectMessage() {
           setUserId(authData.user.id)
           setPeerName(peerResult.data.display_name || 'Campus member')
           setThread(threadData)
-          setMessages(await hydrateAttachments(messageRows || []))
+          const hydrated = await hydrateAttachments(messageRows || [])
+          setMessages(hydrated)
+          void writeCache(cacheKey, {
+            userId: authData.user.id,
+            peerName: peerResult.data.display_name || 'Campus member',
+            thread: threadData,
+            messages: hydrated,
+          })
         }
       } catch (requestError) {
         console.error('Unable to open direct messages:', requestError)
@@ -186,6 +204,14 @@ export function DirectMessage() {
       if (sendError) throw sendError
       setMessages((current) => mergeMessages(current, [data]))
       setMessage('')
+      void sendPushNotification({
+        recipientId: memberId,
+        type: 'message',
+        title: 'New message',
+        body,
+        route: `/direct-message?memberId=${encodeURIComponent(userId)}`,
+        data: { threadId: thread.id },
+      })
     } catch (requestError) {
       console.error('Unable to send direct message:', requestError)
       setError(requestError instanceof Error ? requestError.message : 'Unable to send your message.')
@@ -205,6 +231,14 @@ export function DirectMessage() {
         .select('id')
         .single()
       if (callError) throw callError
+      void sendPushNotification({
+        recipientId: memberId,
+        type: 'call',
+        title: callType === 'phone' ? 'Incoming voice call' : 'Incoming video call',
+        body: 'Someone is calling you',
+        route: `/call?callId=${encodeURIComponent(data.id)}`,
+        data: { callId: data.id, callType },
+      })
       navigate(`/call?callId=${encodeURIComponent(data.id)}`, {
         callId: data.id,
         direction: 'outgoing',

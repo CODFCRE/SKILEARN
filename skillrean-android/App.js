@@ -2,7 +2,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, BackHandler, Linking, StatusBar as NativeStatusBar, StyleSheet, View } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
 import WebView from 'react-native-webview'
+import * as Device from 'expo-device'
+import * as Notifications from 'expo-notifications'
 import { webAppHtml } from './src/web/generatedWebApp'
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+})
 
 function getAuthCallbackRoute(url) {
   if (!url) return null
@@ -58,6 +68,72 @@ export default function App() {
       subscription.remove()
     }
   }, [handleAuthUrl])
+
+  useEffect(() => {
+    let active = true
+    let registrationTimer = null
+
+    const registerNotifications = async () => {
+      if (!Device.isDevice) return
+
+      const existing = await Notifications.getPermissionsAsync()
+      let permission = existing
+      if (!existing.granted && existing.canAskAgain) {
+        permission = await Notifications.requestPermissionsAsync()
+      }
+      if (!permission.granted) return
+
+      await Notifications.setNotificationChannelAsync('incoming-calls', {
+        name: 'Incoming calls',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 500, 500, 500],
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+        sound: 'default',
+      })
+      await Notifications.setNotificationChannelAsync('skilearn-notifications', {
+        name: 'Messages and updates',
+        importance: Notifications.AndroidImportance.HIGH,
+        vibrationPattern: [0, 250, 250, 250],
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+        sound: 'default',
+      })
+
+      const token = await Notifications.getExpoPushTokenAsync()
+      if (active) {
+        const routeInjection = `window.dispatchEvent(new CustomEvent('skilearn-expo-push-token',{detail:{token:${JSON.stringify(token.data)}}}));true;`
+        if (webReady.current) {
+          webView.current?.injectJavaScript(routeInjection)
+        } else {
+          registrationTimer = setInterval(() => {
+            if (!active || !webReady.current) return
+            clearInterval(registrationTimer)
+            webView.current?.injectJavaScript(routeInjection)
+          }, 100)
+        }
+      }
+    }
+
+    void registerNotifications()
+
+    const receivedSubscription = Notifications.addNotificationReceivedListener(() => {})
+    const responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      const route = response.notification.request.content.data?.route
+      if (typeof route === 'string') {
+        if (webReady.current) {
+          webView.current?.injectJavaScript(getRouteInjection(route))
+        } else {
+          pendingAuthRoute.current = route
+        }
+      }
+    })
+
+    return () => {
+      active = false
+      if (registrationTimer) clearInterval(registrationTimer)
+      receivedSubscription.remove()
+      responseSubscription.remove()
+    }
+  }, [])
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {

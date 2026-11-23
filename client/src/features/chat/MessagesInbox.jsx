@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Header, Icon, Screen } from '../../shared/components.jsx'
 import { navigate } from '../../shared/lib/navigation.js'
 import { supabase } from '../../shared/lib/supabase.js'
+import { readCache, writeCache } from '../../shared/lib/cache.js'
 
 export function MessagesInbox() {
   const [threads, setThreads] = useState([])
@@ -19,6 +20,11 @@ export function MessagesInbox() {
       }
 
       try {
+        const cached = await readCache('messages-inbox')
+        if (active && cached?.length) {
+          setThreads(cached)
+          setLoading(false)
+        }
         const { data: authData, error: authError } = await supabase.auth.getUser()
         if (authError) throw authError
         if (!authData.user) throw new Error('Sign in to view your messages.')
@@ -61,7 +67,7 @@ export function MessagesInbox() {
         const avatars = Object.fromEntries(avatarEntries)
 
         if (active) {
-          setThreads((threadRows || []).map((thread) => {
+          const loadedThreads = (threadRows || []).map((thread) => {
             const peerId = thread.user_one === authData.user.id ? thread.user_two : thread.user_one
             const peer = profiles[peerId] || {}
             const latest = latestByThread[thread.id]
@@ -76,7 +82,9 @@ export function MessagesInbox() {
             const aTime = a.latest ? new Date(a.latest.sent_at).getTime() : new Date(a.created_at).getTime()
             const bTime = b.latest ? new Date(b.latest.sent_at).getTime() : new Date(b.created_at).getTime()
             return bTime - aTime
-          }))
+          })
+          setThreads(loadedThreads)
+          void writeCache('messages-inbox', loadedThreads)
         }
       } catch (requestError) {
         console.error('Unable to load messages:', requestError)
